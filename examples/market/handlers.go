@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,15 +12,16 @@ import (
 // FruitIdentityParams represents the parameters that
 // are required to identity a unique fruit in the market.
 type FruitIdentityParams struct {
-	Name string `path:"name"`
+	Name   string `path:"name"`
+	APIKey string `header:"X-Api-Key" validate:"required"`
 }
 
 // ListFruitsParams represents the parameters that can
 // be used to filter the fruit's market listing.
 type ListFruitsParams struct {
 	Origin   *string  `query:"origin" description:"filter by fruit origin"`
-	PriceMin *float64 `query:"price_min" description:"filter by minimum inclusive price"`
-	PriceMax *float64 `query:"price_max" description:"filter by maximum inclusive price"`
+	PriceMin *float64 `query:"price_min" description:"filter by minimum inclusive price" validate:"min=1"`
+	PriceMax *float64 `query:"price_max" description:"filter by maximum inclusive price" validate:"max=15"`
 }
 
 // CreateFruit add a new fruit to the market.
@@ -40,6 +42,9 @@ func CreateFruit(c *gin.Context, fruit *Fruit) (*Fruit, error) {
 
 // DeleteFruit removes a fruit from the market.
 func DeleteFruit(c *gin.Context, params *FruitIdentityParams) error {
+	if params.APIKey == "" {
+		return errors.Forbiddenf("invalid api key")
+	}
 	market.Lock()
 	defer market.Unlock()
 
@@ -55,7 +60,7 @@ func DeleteFruit(c *gin.Context, params *FruitIdentityParams) error {
 // ListFruits lists the fruits of the market.
 // Parameters can be used to filter the fruits.
 func ListFruits(c *gin.Context, params *ListFruitsParams) ([]*Fruit, error) {
-	fruits := make([]*Fruit, 0)
+	basket := make([]*Fruit, 0)
 
 	market.Lock()
 	for _, f := range market.fruits {
@@ -70,12 +75,14 @@ func ListFruits(c *gin.Context, params *ListFruitsParams) ([]*Fruit, error) {
 			tobasket = false
 		}
 		// If all conditions validates, add the
-		// fruit to the returned basked.
+		// fruit to the returned basket.
 		if tobasket {
-			fruits = append(fruits, f)
+			basket = append(basket, f)
 		}
 	}
 	market.Unlock()
 
-	return fruits, nil
+	c.Header("X-Market-Listing-Size", strconv.Itoa(len(basket)))
+
+	return basket, nil
 }

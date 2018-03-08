@@ -24,8 +24,11 @@ const (
 	TypeDateTime
 	TypePassword
 
-	TypeUnknown
 	TypeUnsupported
+
+	// TypeComplex represents non-primitive types like
+	// Go struct, for which a schema must be generated.
+	TypeComplex
 )
 
 // Type returns the type corresponding to the DataType.
@@ -82,7 +85,12 @@ func DataTypeFromGo(t reflect.Type) DataType {
 	case reflect.Func, reflect.Chan, reflect.Uintptr, reflect.UnsafePointer, reflect.Interface, reflect.Complex64, reflect.Complex128:
 		return TypeUnsupported
 	}
-	return TypeUnknown
+	// Complex types:
+	// * reflect.Struct
+	// * reflect.Map
+	// * reflect.Slice
+	// * reflect.Array
+	return TypeComplex
 }
 
 func stringToType(val string, t reflect.Type) (interface{}, error) {
@@ -120,7 +128,7 @@ var types = [...]string{
 	TypeDate:     "string",
 	TypeDateTime: "string",
 	TypePassword: "string",
-	TypeUnknown:  "string",
+	TypeComplex:  "string",
 }
 
 var formats = [...]string{
@@ -135,5 +143,5 @@ var formats = [...]string{
 	TypeDate:     "date",
 	TypeDateTime: "date-time",
 	TypePassword: "password",
-	TypeUnknown:  "",
+	TypeComplex:  "",
 }

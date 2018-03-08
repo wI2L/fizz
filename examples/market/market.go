@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -8,10 +9,10 @@ import (
 
 // Fruit represents a sweet, fresh fruit.
 type Fruit struct {
-	Name    string    `json:"name" binding:"required"`
-	Origin  string    `json:"origin" description:"Country of origin of the fruit"`
-	Price   float64   `json:"price" binding:"required" description:"Price in euros"`
-	AddedAt time.Time `json:"added_at" binding:"-" description:"Date of addition of the fruit to the market"`
+	Name    string    `json:"name" validate:"required"`
+	Origin  string    `json:"origin" validate:"required" description:"Country of origin of the fruit" enum:"ecuador,france,senegal,china,spain"`
+	Price   float64   `json:"price" validate:"required" description:"Price in euros"`
+	AddedAt time.Time `json:"-" binding:"-" description:"Date of addition of the fruit to the market"`
 }
 
 // Market is a fruit market.
@@ -33,19 +34,23 @@ func init() {
 }
 
 var fruits = []*Fruit{
-	&Fruit{"banana", "ecuador", 2.99, time.Now()},
-	&Fruit{"apricot", "france", 4.50, time.Now()},
-	&Fruit{"mango", "senegal", 6.99, time.Now()},
-	&Fruit{"litchi", "china", 5.65, time.Now()},
-	&Fruit{"apple", "france", 2.49, time.Now()},
-	&Fruit{"peach", "spain", 3.20, time.Now()},
-	&Fruit{"peach", "spain", 3.20, time.Now()},
+	{"banana", "ecuador", 2.99, time.Now()},
+	{"apricot", "france", 4.50, time.Now()},
+	{"mango", "senegal", 6.99, time.Now()},
+	{"litchi", "china", 5.65, time.Now()},
+	{"apple", "france", 2.49, time.Now()},
+	{"peach", "spain", 3.20, time.Now()},
+	{"peach", "spain", 3.20, time.Now()},
 }
 
 func main() {
+	router, err := NewRouter()
+	if err != nil {
+		log.Fatal(err)
+	}
 	srv := &http.Server{
-		Addr:    ":48879",
-		Handler: NewRouter(),
+		Addr:    ":4242",
+		Handler: router,
 	}
 	srv.ListenAndServe()
 }

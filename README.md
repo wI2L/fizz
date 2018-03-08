@@ -17,93 +17,112 @@ First of all, you need to create a Fizz instance. You can pass an existing Gin e
 engine := gin.Default()
 engine.Use(...) // register global middlewares
 
-fizz := fizz.NewFromEngine(engine)
+f := fizz.NewFromEngine(engine)
 ```
 
 A Fizz instance abstracts the `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD`, and `Use` functions of a Gin engine that you use to declare routes and register middlewares.
 
 The bare minimum to register a handler is:
 ```go
-fizz.GET("/foo/bar", MyHandler, tonic.StatusCode(200))
+f.GET("/foo/bar", MyHandler, fizz.StatusCode(200))
 ```
-Those functions takes optional variadics arguments using the option pattern to let you enrich the OpenAPI specification for each operation.
+Those functions takes variadics arguments using the option pattern to let you enrich the OpenAPI specification for each operation.
 
 ```go
 // set the default status code used by the tonic render hook.
-// Warning: this option is mandatory, will panic if missing.
-tonic.StatusCode(code int)
+// Warning: this option is mandatory for tonic. It will panic
+// if it's missing.
+fizz.StatusCode(code int)
 
 // set the default response description.
 // a default text status created from the default status code
 // will be used in case its missing.
-tonic.StatusDescription(desc string)
+fizz.StatusDescription(desc string)
 
 // the sumamry of the operation.
-tonic.Summary(summary string)
+fizz.Summary(summary string)
 
 // the description of the operation.
-tonic.Description(desc string)
+fizz.Description(desc string)
 
 // mark the operation as deprecated.
-tonic.Deprecated(deprecated bool)
+fizz.Deprecated(deprecated bool)
 
 // add an additional response to the operation.
 // model and header may be `nil`.
-tonic.Response(code, desc string, model interface{}, headers []*ResponseHeader)
+fizz.Response(code, desc string, model interface{}, headers []*ResponseHeader)
 
 // add an additional header to the default response.
-// model may be `nil`, in which case the string type will
-// be used as a default.
-tonic.Header(name, desc string, model interface{})
+// model can be of any type, and may also be `nil`,
+// in which case the string type will be used as default.
+fizz.Header(name, desc string, model interface{})
 ```
 
-You can also creates subgroups of routes using the method `Group()`. Unlike Gin own function, the Fizz method takes two other arguments `name` and `description`. These parameters will be used as an **OpenAPI** tag for all the sub-routes registered to the group.
+To help you declare additional headers, predefined variables for Go primitives types that you can pass as the third argument of `fizz.Header()` are available.
+```go
+var (
+	Integer  int32
+	Long     int64
+	Float    float32
+	Double   float64
+	String   string
+	Byte     []byte
+	Binary   []byte
+	Boolean  bool
+	DateTime time.Time
+)
+```
+
+You can also creates subgroups of routes using the method `Group()`. Unlike Gin own function, the Fizz method takes two other arguments `name` and `description`. These parameters will be used to create an **OpenAPI** tag that will be applied to all the sub-routes registered to the group.
 
 ```go
-grp := fizz.Group("/subpath", "MyGroup", "Group description", middlewares...)
+grp := f.Group("/subpath", "MyGroup", "Group description", middlewares...)
 
 // The Use() method can also be used on groups to
 // register middlewares after their creation.
 grp.Use(moreMiddlewares...)
 
-grp.POST("", MyPostHandler,
-   tonic.StatusCode(201),
-   tonic.StatusDescription("resource created"),
-   tonic.Header("X-Custom-Header", "custom header", new(int)),
+grp.GET("/:id", MyGetHandler,
+   fizz.StatusCode(200),
+   fizz.Summary("Get a resource by its ID"),
+   fizz.Response(400, "Bad request", nil, nil),
 )
 
-grp.GET("/:id", MyGetHandler,
-   tonic.StatusCode(200),
-   tonic.Summary("Get a resource by its ID"),
-   tonic.Response(400, "Bad request", nil, nil),
+type MyFooBar struct {}
+
+grp.POST("", MyPostHandler,
+   fizz.StatusCode(201),
+   fizz.StatusDescription("resource created"),
+   fizz.Header("X-Custom-Header", "custom header", fizz.Integer),
+   fizz.Header("X-Foo-Bar", "foobar", MyFooBar{})
 )
 ```
 
 Subgroups of subgroups can be created to an infinite depth, according yo your needs.
 
 ```go
-foo := fizz.Group("/foo", "Foo", "Foo group")
+foo := f.Group("/foo", "Foo", "Foo group")
 
 // all routes registered on group bar will have
 // a relative path starting with /foo/bar
-bar := foo.Group("/bar", "Bar", "Bar group")
+bar := f.Group("/bar", "Bar", "Bar group")
 
 // /foo/bar/{barID}
-bar.GET("/:barID", MyBarHandler, tonic.StatusCode(200))
+bar.GET("/:barID", MyBarHandler, fizz.StatusCode(200))
 ```
 
-Finally, to use the router as the Handler of your HTTP server, call the `Router()` on the Fizz instance.
+Finally, use the Fizz instance as the base handler of your HTTP server.
 ```go
 srv := &http.Server{
    Addr:    ":4242",
-   Handler: fizz.Router(),
+   Handler: f,
 }
 srv.ListenAndServe()
 ```
 
 ## Tonic
 
-The subpackage **tonic** handles path/query/header/cookie/body parameters binding in a single consolidated input object which allows you to remove all the boilerplate code that retrieves and tests the presence of various parameters.
+The subpackage **tonic** handles path/query/header/body parameters binding in a single consolidated input object which allows you to remove all the boilerplate code that retrieves and tests the presence of various parameters.
 
 ### Handler signature
 
@@ -116,81 +135,117 @@ Input and output objects are both optional, as such, the minimal accepted signat
 func(*gin.Context) error
 ```
 
-Output objects can be of any type, and will be marshaled to the desired media type.
-Note that the input object MUST always be a pointer to a struct, or the parameters binding will panic.
+Output objects can be of any type, and will be marshalled to the desired media type.
+Note that the input object MUST always be a pointer to a struct, or the tonic wrapping will panic at runtime.
+
+If you want to register handlers that don't follow the Tonic signature, you can get the underlying Gin engine of a Fizz instance using the `Engine()` method. Be aware that the routes added this way won't be documented by the OpenAPI spec gnerator since it is tightly coupled with Tonic.
 
 ### Location tags
 
-Tonic uses four struct tags to recognize the parameters it should bind from the input types of your objects:
+Tonic uses three struct tags to recognize the parameters it should bind from the input types of your objects:
 - `path`: bind from the request path
 - `query`: bind from the query string
 - `header`: bind from the request header
-- `cookie`: bind from the request cookies
 
-The fields tgat doesn't use one those four tags will be considered as part of the request body.
+The fields that doesn't use one those four tags will be considered as part of the request body.
 
 The value of each struct tags represents the name of the field in each location, with options.
 ```go
 type MyHandlerParams struct {
    ID  int64     `path:"id"`
    Foo string    `query:"foo"`
-   Bar time.Time `header:"x-custom-bar"`
+   Bar time.Time `header:"x-foo-bar"`
 }
 ```
 
-Tonic will automatically convert the value extracted from the location described by the tag and convert it to the appropriate type before binding.
+Tonic will automatically convert the value extracted from the location described by the tag to the appropriate type before binding.
 
-To make a field required, you can use the `required` option in the tag value.
-```go
-ID  int64 `path:"id,required"`
-```
-
-**NOTE**: A path parameter is always required and will appear required in the spec regardless of the presence of the option in the tag value.
+**NOTE**: A path parameter is always required and will appear required in the spec regardless of the `validate` tag content.
 
 ### Additional tags
 
 You can use additional tags. Some will be interpreted by Tonic, others will be exclusively used to enrich the **OpenAPI** specification.
-- `default`: Tonic will bind this value if none was passed with the request. This should not be used in cunjunction with the `required` option. [docs](https://swagger.io/docs/specification/describing-parameters/), section _Common Mistakes_ for more informations about this tag behavior.
+- `default`: Tonic will bind this value if none was passed with the request. This should not be used if a field is also required. Read the [documentation](https://swagger.io/docs/specification/describing-parameters/) (section _Common Mistakes_) for more informations about this tag behaviour.
 - `description`: describe the field in the spec.
+- `deprecated`: indicates if the field is deprecated. accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
 - `enum`: a coma separated list of acceptable values for the parameter. Tonic will verify that the given value is one of those.
-- `format`: override the format of the field in the spec. [docs](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat)
-- `binding`: binding options related to the request body. [docs](https://github.com/gin-gonic/gin#model-binding-and-validation)
+- `format`: override the format of the field in the spec. [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat).
+- `validate`: field validation rules. [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8).
+
+### JSON/XML
+
+The JSON/XML encoders usually omit a field that has the tag `"-"`. This behaviour is reproduced by the spec generator ; a field with this tag won't appear in the schema properties of the model.
+
+In the following example, the field `Input` is used only for binding request body parameters and won't appear in the output encoding while `Output` will be marshaled but will not be used for parameters binding.
+```go
+type Model struct {
+	Input  string `json:"-"`
+	Output string `json:"output" binding:"-"`
+}
+```
 
 ### Request body
 
-If you want to make a request body field mandatory, you can use the tag `binding:"required"`. However, to explicitely ignore a parameter, use the tag `binding:"-"`.
+If you want to make a request body field mandatory, you can use the tag `validate:"required"`. The validator used by tonic will ensure that the field is present.
+To be able to make a difference between a missing value and the zero value of a type, use a pointer.
 
-Not that thet spec generator will ignore request body parameters for the operations with method `GET`, `DELETE` or `HEAD`.
+To explicitly ignore a parameter from the request body, use the tag `binding:"-"`.
+
+Not that the generator will ignore request body parameters for the operations with method `GET`, `DELETE` or `HEAD`.
    > GET, DELETE and HEAD are no longer allowed to have request body because it does not have defined semantics as per [RFC 7231](https://tools.ietf.org/html/rfc7231#section-4.3).
    _[Swagger Documentation](https://swagger.io/docs/specification/describing-request-body/)_
 
+### Schema validation
+
+The **OpenAPI** generator recognize some tags of the [go-playground/validator.v8](https://gopkg.in/go-playground/validator.v8) package and translate those to the [properties of the schema](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#properties) that are taken from the [JSON Schema definition](http://json-schema.org/latest/json-schema-validation.html#rfc.section.6).
+
+The supported tags are: [len](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Length), [max](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Maximum), [min](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Mininum), [eq](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Equals), [gt](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Greater_Than), [gte](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Greater_Than_or_Equal), [lt](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Less_Than), [lte](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Less_Than_or_Equal).
+
+Based on the type of the field that carry the tag, the fields `maximum`, `minimum`, `minLength`, `maxLength`, `minIntems`, `maxItems`, `minProperties` and `maxProperties` of its **JSON Schema** will be filled accordingly.
+
 ## OpenAPI specification
 
-Fizz let you customize and enrich the generated OpenAPI specification.
-When you register the route that will serve the spec, you can declare general informations about your API.
+You can serve the generated OpenAPI specification in either `JSON` or `YAML` format using the handler returned by the `fizz.OpenAPI()` method.
+
+To enrich the specification, you can provide additional informations. Head to the [OpenAPI 3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [_openapi/objects.go_](openapi/object.go#L25).
+
 ```go
 infos := &openapi.Info{
    Title:       "Fruits Market",
    Description: `This is a sample Fruits market server.`,
    Version:     "1.0.0",
 }
-```
 
-Head to the [OAS3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [_openapi/objects.go_](openapi/object.go#L25).
-
-You can serve the spec in either `JSON` or `YAML` format.
-```go
-fizz.Router().GET("/openapi.json", fizz.OpenAPI(infos, "json"))
+f.Engine().GET("/openapi.json", fizz.OpenAPI(infos, "json"))
+f.Engine().GET("/openapi.yaml", fizz.OpenAPI(infos, "yaml"))
 ```
-```go
-fizz.Router().GET("/openapi.yaml", fizz.OpenAPI(infos, "yaml"))
-```
-**NOTE**: since the **OpenAPI** handler isn't compliant with the Tonic signature, you should use the underlying router of the Fizz instance to register this handler.
+**NOTES**:
+* The handler is not compliant with the Tonic signature, you **have to** use the underlying Gin engine of the Fizz instance to register it.
+* The spec generator will never panic. However, it is strongly recommended to call `fizz.Errors()` to retrieve and handle the errors that may have occured during the generation before starting your API.
 
 ## Known limitations
 
 - Since **OpenAPI** is based on **JSON Schema**, maps with keys that are not strings are not supported and will be ignored during the generation of the spec.
-- The output types of your handlers are registered as components within the generated spec. However, the name used for each type does not take into account the package path. As such, duplicate names are not supported. Please ensure that you use unique type names across all the packages of your application.
+- The output types of your handlers are registered as components within the generated spec. The name used for each component is composed of the package and type name concatenated using CamelCase, and does not contain the full import path. As such, please ensure that you don't use the same type name in two eponym package in your application.
+- Recursive embedding of the same type is not supported, at any level of recursion. The generator will warn and skip the offending fields.
+   ```go
+   type A struct {
+      Foo int
+      *A   // ko, embedded and same type as parent
+      A *A // ok, not embedded
+      *B   // ok, different type
+   }
+
+   type B struct {
+      Bar string
+      *A // ko, type B is embedded in type A
+      *C // ok, type C does not contains an embedded field of type A
+   }
+
+   type C struct {
+      Baz bool
+   }
+   ```
 
 ## Examples
 
@@ -199,11 +254,11 @@ A simple runnable API is available in `examples/market`.
 go build
 ./market
 # Retrieve the specification marshaled in JSON.
-curl -i http://localhost:48879/openapi.json | jq
+curl -i http://localhost:4242/openapi.json
 ```
 
 ## Credits
 
-Fizz is based on a revised version of [gadgeto/tonic](https://github.com/loopfz/gadgeto/tree/master/tonic).
+Fizz is based on [gadgeto/tonic](https://github.com/loopfz/gadgeto/tree/master/tonic) and [gin-gonic/gin](https://github.com/gin-gonic/gin). :heart:
 
 <p align="right"><img src="https://forthebadge.com/images/badges/built-with-swag.svg"></p>
