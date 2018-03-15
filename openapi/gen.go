@@ -654,18 +654,24 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 	}
 	name := g.typeName(t)
 
-	// Return an existing schema reference from the
-	// API components, if any.
-	if name != "" {
-		if _, ok := g.api.Components.Schemas[name]; ok {
-			return &SchemaOrRef{Reference: &Reference{
-				Ref: "#/components/schemas/" + name,
-			}}
-		}
+	// If the type of the field has already been registered,
+	// skip the schema generation to avoid a recursive loop.
+	// We're not returning directly a reference from the components,
+	// because there is no guarantee the generation is complete yet.
+	if _, ok := g.schemaTypes[t]; ok {
+		return &SchemaOrRef{Reference: &Reference{
+			Ref: "#/components/schemas/" + g.typeName(t),
+		}}
 	}
 	schema := &Schema{
 		Type:       "object",
 		Properties: make(map[string]*SchemaOrRef),
+	}
+	// Register the type once before diving into
+	// the recursive hole if it has a name. Anonymous
+	// struct are all considered unique.
+	if name != "" {
+		g.schemaTypes[t] = struct{}{}
 	}
 	schema = g.flattenStructSchema(t, t, schema)
 
@@ -724,18 +730,7 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 			required = true
 			schema.Required = append(schema.Required, fname)
 		}
-		// If the type of the field has already been registered,
-		// skip the schema generation to avoid a recursive loop.
-		if _, ok := g.schemaTypes[ft]; ok {
-			schema.Properties[fname] = &SchemaOrRef{Reference: &Reference{
-				Ref: "#/components/schemas/" + g.typeName(t),
-			}}
-		} else {
-			if ft.Kind() == reflect.Struct {
-				g.schemaTypes[ft] = struct{}{}
-			}
-			schema.Properties[fname] = g.newSchemaFromStructField(f, required, fname, g.typeName(t))
-		}
+		schema.Properties[fname] = g.newSchemaFromStructField(f, required, fname, g.typeName(t))
 	}
 	return schema
 }
