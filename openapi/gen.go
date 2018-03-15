@@ -128,15 +128,6 @@ func (g *Generator) YAML() ([]byte, error) {
 // using the method and path of the route and the tonic
 // handler informations.
 func (g *Generator) AddOperation(path, method, tag, id string, in, out reflect.Type, info *OperationInfo) error {
-	if in == nil {
-		return errors.New("input type is nil")
-	}
-	if in.Kind() == reflect.Ptr {
-		in = in.Elem()
-	}
-	if in.Kind() != reflect.Struct {
-		return errors.New("input type is not a struct")
-	}
 	path = rewritePath(path)
 
 	// If a PathItem does not exists for this
@@ -164,8 +155,16 @@ func (g *Generator) AddOperation(path, method, tag, id string, in, out reflect.T
 		method != http.MethodHead &&
 		method != http.MethodDelete
 
-	if err := g.setOperationParams(op, in, in, allowBody); err != nil {
-		return err
+	if in != nil {
+		if in.Kind() == reflect.Ptr {
+			in = in.Elem()
+		}
+		if in.Kind() != reflect.Struct {
+			return errors.New("input type is not a struct")
+		}
+		if err := g.setOperationParams(op, in, in, allowBody); err != nil {
+			return err
+		}
 	}
 	if out != nil {
 		if out.Kind() == reflect.Ptr {
