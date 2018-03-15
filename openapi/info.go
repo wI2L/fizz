@@ -3,6 +3,7 @@ package openapi
 // OperationInfo represents the informations of an operation
 // that will be used when generating the OpenAPI specification.
 type OperationInfo struct {
+	ID                string
 	StatusCode        int
 	StatusDescription string
 	Headers           []*ResponseHeader
