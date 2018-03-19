@@ -32,14 +32,16 @@ var mediaTags = map[string]string{
 
 // Generator is an OpenAPI 3 generator.
 type Generator struct {
-	api         *OpenAPI
-	config      *SpecGenConfig
-	schemaTypes map[reflect.Type]struct{}
-	errors      []error
+	api           *OpenAPI
+	config        *SpecGenConfig
+	schemaTypes   map[reflect.Type]struct{}
+	operationsIDS map[string]struct{}
+	errors        []error
+	fullNames     bool
 }
 
-// NewSpec returns a new empty OpenAPI specification.
-func NewSpec(conf *SpecGenConfig) (*Generator, error) {
+// NewGenerator returns a new OpenAPI generator.
+func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 	if conf == nil {
 		return nil, errors.New("missing config")
 	}
@@ -57,12 +59,14 @@ func NewSpec(conf *SpecGenConfig) (*Generator, error) {
 			Paths:      make(Paths),
 			Components: components,
 		},
-		schemaTypes: make(map[reflect.Type]struct{}),
+		schemaTypes:   make(map[reflect.Type]struct{}),
+		operationsIDS: make(map[string]struct{}),
+		fullNames:     true,
 	}, nil
 }
 
 // SpecGenConfig represents the configuration
-// of the spec generation.
+// of the spec generator.
 type SpecGenConfig struct {
 	// Name of the tag used by the validator.v9
 	// package. This is used by the spec generator
@@ -86,10 +90,26 @@ func (g *Generator) SetInfo(info *Info) {
 	g.api.Info = info
 }
 
+// API returns the internal API spec.
+func (g *Generator) API() *OpenAPI {
+	return g.api
+}
+
 // Errors returns the errors thar occurred during
 // the generation of the specification.
 func (g *Generator) Errors() []error {
 	return g.errors
+}
+
+// UseFullSchemaNames defines whether the generator should generates
+// a full name for the components using the package name of the type
+// as a prefix.
+// Omitting the package part of the name increases the risks of conflicts.
+// It is the responsibility of the developper to ensure that unique type
+// names are used across all the packages of the application.
+// Default to true.
+func (g *Generator) UseFullSchemaNames(b bool) {
+	g.fullNames = b
 }
 
 // AddTag adds a new tag to the OpenAPI specification.
@@ -127,8 +147,14 @@ func (g *Generator) YAML() ([]byte, error) {
 // AddOperation add a new operation to the OpenAPI specification
 // using the method and path of the route and the tonic
 // handler informations.
-func (g *Generator) AddOperation(path, method, tag, id string, in, out reflect.Type, info *OperationInfo) error {
+func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type, info *OperationInfo) error {
 	path = rewritePath(path)
+
+	// Check that the ID of the operation is unique.
+	if _, ok := g.operationsIDS[info.ID]; ok {
+		return fmt.Errorf("ID %s is already used by another operation", info.ID)
+	}
+	g.operationsIDS[info.ID] = struct{}{}
 
 	// If a PathItem does not exists for this
 	// path, create a new one.
@@ -140,7 +166,7 @@ func (g *Generator) AddOperation(path, method, tag, id string, in, out reflect.T
 	// Create a new operation and set it
 	// to the according method of the PathItem.
 	op := &Operation{
-		ID:          id,
+		ID:          info.ID,
 		Summary:     info.Summary,
 		Description: info.Description,
 		Deprecated:  info.Deprecated,
@@ -792,6 +818,9 @@ func (g *Generator) typeName(t reflect.Type) string {
 	}
 	typ := name[sp+1:]
 
+	if !g.fullNames {
+		return strings.Title(typ)
+	}
 	return strings.Title(pkg) + strings.Title(typ)
 }
 

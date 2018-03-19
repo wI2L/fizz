@@ -28,7 +28,7 @@ var (
 // routes handlers with Tonic and generates an OpenAPI
 // 3.0 specification from it.
 type Fizz struct {
-	spec   *openapi.Generator
+	gen    *openapi.Generator
 	engine *gin.Engine
 	*RouterGroup
 }
@@ -52,7 +52,7 @@ func New() *Fizz {
 func NewFromEngine(e *gin.Engine) *Fizz {
 	// Create a new spec with the config
 	// based on tonic internals.
-	spec, _ := openapi.NewSpec(
+	gen, _ := openapi.NewGenerator(
 		&openapi.SpecGenConfig{
 			ValidatorTag:      tonic.ValidationTag,
 			PathLocationTag:   tonic.PathTag,
@@ -64,10 +64,10 @@ func NewFromEngine(e *gin.Engine) *Fizz {
 	)
 	return &Fizz{
 		engine: e,
-		spec:   spec,
+		gen:    gen,
 		RouterGroup: &RouterGroup{
 			group: &e.RouterGroup,
-			gen:   spec,
+			gen:   gen,
 		},
 	}
 }
@@ -77,9 +77,14 @@ func (f *Fizz) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f.engine.ServeHTTP(w, r)
 }
 
-// Engine returns the Gin underlying engine.
+// Engine returns the underlying Gin engine.
 func (f *Fizz) Engine() *gin.Engine {
 	return f.engine
+}
+
+// Generator returns the underlying OpenAPI generator.
+func (f *Fizz) Generator() *openapi.Generator {
+	return f.gen
 }
 
 // Errors returns the errors that may have occurred
@@ -174,15 +179,14 @@ func (g *RouterGroup) Handle(path, method string, h interface{}, infos ...func(*
 	// Consolidate path.
 	path = joinPaths(g.group.BasePath(), path)
 
+	// Set an operation ID if none is provided.
+	if oi.ID == "" {
+		oi.ID = route.HandlerName()
+	}
 	// Add operation to the OpenAPI spec.
-	err = g.gen.AddOperation(
-		path, method, g.Name, route.HandlerName(),
-		route.InputType(), route.OutputType(),
-		oi,
-	)
-	if err != nil {
+	if err := g.gen.AddOperation(path, method, g.Name, route.InputType(), route.OutputType(), oi); err != nil {
 		panic(fmt.Sprintf(
-			"error while creating OpenAPI spec on operation %s %s: %s",
+			"error while generating OpenAPI spec on operation %s %s: %s",
 			method, path, err,
 		))
 	}
@@ -192,7 +196,7 @@ func (g *RouterGroup) Handle(path, method string, h interface{}, infos ...func(*
 // OpenAPI returns a Gin HandlerFunc that serves
 // the marshalled OpenAPI specification of the API.
 func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
-	f.spec.SetInfo(info)
+	f.gen.SetInfo(info)
 
 	if ct == "" {
 		ct = "json"
@@ -200,7 +204,7 @@ func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
 	switch ct {
 	case "json":
 		return func(c *gin.Context) {
-			b, err := f.spec.JSON()
+			b, err := f.gen.JSON()
 			if err != nil {
 				c.Error(err)
 			}
@@ -208,7 +212,7 @@ func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
 		}
 	case "yaml":
 		return func(c *gin.Context) {
-			b, err := f.spec.YAML()
+			b, err := f.gen.YAML()
 			if err != nil {
 				c.Error(err)
 			}
@@ -243,6 +247,13 @@ func Summary(summary string) func(*openapi.OperationInfo) {
 func Description(desc string) func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
 		o.Description = desc
+	}
+}
+
+// ID overrides the operation ID.
+func ID(id string) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.ID = id
 	}
 }
 

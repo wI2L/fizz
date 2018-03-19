@@ -45,6 +45,11 @@ fizz.Summary(summary string)
 // the description of the operation.
 fizz.Description(desc string)
 
+// the ID of the operation.
+// Must be a unique string used to identify the operation among
+// all operations described in the API.
+fizz.ID(id string)
+
 // mark the operation as deprecated.
 fizz.Deprecated(deprecated bool)
 
@@ -226,7 +231,7 @@ f.Engine().GET("/openapi.yaml", fizz.OpenAPI(infos, "yaml"))
 ## Known limitations
 
 - Since **OpenAPI** is based on **JSON Schema**, maps with keys that are not strings are not supported and will be ignored during the generation of the spec.
-- The output types of your handlers are registered as components within the generated spec. The name used for each component is composed of the package and type name concatenated using CamelCase, and does not contain the full import path. As such, please ensure that you don't use the same type name in two eponym package in your application.
+- The output types of your handlers are registered as components within the generated spec. By default, the name used for each component is composed of the package and type name concatenated using CamelCase, and does not contain the full import path. As such, please ensure that you don't use the same type name in two eponym package in your application. See the method `Generator.UseFullSchemaNames()` for more control over this behaviour.
 - Recursive embedding of the same type is not supported, at any level of recursion. The generator will warn and skip the offending fields.
    ```go
    type A struct {
