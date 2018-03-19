@@ -113,82 +113,85 @@ func (g *RouterGroup) Use(handlers ...gin.HandlerFunc) {
 }
 
 // GET is a shortcut to register a new handler with the GET method.
-func (g *RouterGroup) GET(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "GET", h, infos...)
+func (g *RouterGroup) GET(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "GET", infos, handlers...)
 }
 
 // POST is a shortcut to register a new handler with the POST method.
-func (g *RouterGroup) POST(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "POST", h, infos...)
+func (g *RouterGroup) POST(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "POST", infos, handlers...)
 }
 
 // PUT is a shortcut to register a new handler with the PUT method.
-func (g *RouterGroup) PUT(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "PUT", h, infos...)
+func (g *RouterGroup) PUT(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "PUT", infos, handlers...)
 }
 
 // PATCH is a shortcut to register a new handler with the PATCH method.
-func (g *RouterGroup) PATCH(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "PATCH", h, infos...)
+func (g *RouterGroup) PATCH(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "PATCH", infos, handlers...)
 }
 
 // DELETE is a shortcut to register a new handler with the DELETE method.
-func (g *RouterGroup) DELETE(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "DELETE", h, infos...)
+func (g *RouterGroup) DELETE(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "DELETE", infos, handlers...)
 }
 
 // OPTIONS is a shortcut to register a new handler with the OPTIONS method.
-func (g *RouterGroup) OPTIONS(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "OPTIONS", h, infos...)
+func (g *RouterGroup) OPTIONS(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "OPTIONS", infos, handlers...)
 }
 
 // HEAD is a shortcut to register a new handler with the HEAD method.
-func (g *RouterGroup) HEAD(path string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
-	return g.Handle(path, "HEAD", h, infos...)
+func (g *RouterGroup) HEAD(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "HEAD", infos, handlers...)
 }
 
 // Handle registers a new request handler that is wrapped
 // with Tonic and documented in the OpenAPI specification.
-func (g *RouterGroup) Handle(path, method string, h interface{}, infos ...func(*openapi.OperationInfo)) *RouterGroup {
+func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
 	oi := &openapi.OperationInfo{}
 	for _, info := range infos {
 		info(oi)
 	}
-	if oi.StatusCode == 0 {
-		panic(fmt.Sprintf(
-			"error while adding %s operation for path %s, missing default status code",
-			method, path,
-		))
-	}
-	// Generate tonic-wrapped handler and register
-	// it with the underlying Gin RouterGroup.
-	hfunc := tonic.Handler(h, oi.StatusCode)
+	var wrapped []*tonic.Route
 
-	// Retrieve handler informations processed
-	// by tonic.
-	route, err := tonic.GetRouteByHandler(hfunc)
-	if err != nil {
-		panic(fmt.Sprintf(
-			"error while creating OpenAPI spec on operation %s %s: %s",
-			method, path, err,
-		))
+	// Find the handlers wrapped with Tonic.
+	for _, h := range handlers {
+		r, err := tonic.GetRouteByHandler(h)
+		if err == nil {
+			wrapped = append(wrapped, r)
+		}
 	}
-	// Register the handler with Gin underlying group.
-	g.group.Handle(method, path, hfunc)
-
-	// Consolidate path.
-	path = joinPaths(g.group.BasePath(), path)
-
-	// Set an operation ID if none is provided.
-	if oi.ID == "" {
-		oi.ID = route.HandlerName()
+	// Check that no more that one tonic-wrapped handler
+	// is registered for this operation.
+	if len(wrapped) > 1 {
+		panic(fmt.Sprintf("multiple tonic-wrapped handler used for operation %s %s", method, path))
 	}
-	// Add operation to the OpenAPI spec.
-	if err := g.gen.AddOperation(path, method, g.Name, route.InputType(), route.OutputType(), oi); err != nil {
-		panic(fmt.Sprintf(
-			"error while generating OpenAPI spec on operation %s %s: %s",
-			method, path, err,
-		))
+	// Register the handlers with Gin underlying group.
+	g.group.Handle(method, path, handlers...)
+
+	// If we have a tonic-wrapped handler, generate the
+	// specification of this operation.
+	if len(wrapped) == 1 {
+		hfunc := wrapped[0]
+
+		// Set an operation ID if none is provided.
+		if oi.ID == "" {
+			oi.ID = hfunc.HandlerName()
+		}
+		oi.StatusCode = hfunc.GetDefaultStatusCode()
+
+		// Consolidate path.
+		path = joinPaths(g.group.BasePath(), path)
+
+		// Add operation to the OpenAPI spec.
+		if err := g.gen.AddOperation(path, method, g.Name, hfunc.InputType(), hfunc.OutputType(), oi); err != nil {
+			panic(fmt.Sprintf(
+				"error while generating OpenAPI spec on operation %s %s: %s",
+				method, path, err,
+			))
+		}
 	}
 	return g
 }
@@ -204,30 +207,19 @@ func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
 	switch ct {
 	case "json":
 		return func(c *gin.Context) {
-			b, err := f.gen.JSON()
-			if err != nil {
-				c.Error(err)
-			}
-			c.Data(200, "application/json", b)
+			c.JSON(200, f.gen.API())
 		}
 	case "yaml":
 		return func(c *gin.Context) {
-			b, err := f.gen.YAML()
-			if err != nil {
-				c.Error(err)
-			}
-			c.Data(200, "application/yaml", b)
+			c.YAML(200, f.gen.API())
 		}
 	}
 	return nil
 }
 
-// StatusCode sets the default status code of the operation.
-func StatusCode(code int) func(*openapi.OperationInfo) {
-	return func(o *openapi.OperationInfo) {
-		o.StatusCode = code
-	}
-}
+// OperationOption represents an option-pattern function
+// used to add informations to an operation.
+type OperationOption func(*openapi.OperationInfo)
 
 // StatusDescription sets the default status description of the operation.
 func StatusDescription(desc string) func(*openapi.OperationInfo) {
@@ -243,10 +235,26 @@ func Summary(summary string) func(*openapi.OperationInfo) {
 	}
 }
 
+// Summaryf adds a summary to an operation according
+// to a format specifier.
+func Summaryf(format string, a ...interface{}) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.Summary = fmt.Sprintf(format, a...)
+	}
+}
+
 // Description adds a description to an operation.
 func Description(desc string) func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
 		o.Description = desc
+	}
+}
+
+// Descriptionf adds a description to an operation
+// according to a format specifier.
+func Descriptionf(format string, a ...interface{}) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.Description = fmt.Sprintf(format, a...)
 	}
 }
 

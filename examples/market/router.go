@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/loopfz/gadgeto/tonic"
 
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
@@ -26,10 +27,8 @@ func NewRouter() (*fizz.Fizz, error) {
 		Description: `This is a sample Fruits market server.`,
 		Version:     "1.0.0",
 	}
-	// Get the underlying fizz instance router and
-	// create a new route that serve the spec without
-	// any tonic wrapping of the handler.
-	fizz.Engine().GET("/openapi.json", fizz.OpenAPI(infos, "json"))
+	// Create a new route that serve the OpenAPI spec.
+	fizz.GET("/openapi.json", nil, fizz.OpenAPI(infos, "json"))
 
 	// Setup routes.
 	routes(fizz.Group("/market", "market", "Your daily dose of freshness"))
@@ -42,22 +41,22 @@ func NewRouter() (*fizz.Fizz, error) {
 
 func routes(grp *fizz.RouterGroup) {
 	// Add a new fruit to the market.
-	grp.POST("", CreateFruit,
-		fizz.StatusCode(200),
+	grp.POST("", []fizz.OperationOption{
 		fizz.Summary("Add a fruit to the market"),
 		fizz.Response("400", "Bad request", nil, nil),
-	)
+	}, tonic.Handler(CreateFruit, 200))
+
 	// Remove a fruit from the market,
 	// probably because it rotted.
-	grp.DELETE("/:name", DeleteFruit,
-		fizz.StatusCode(204),
+	grp.DELETE("/:name", []fizz.OperationOption{
 		fizz.Summary("Remove a fruit from the market"),
 		fizz.Response("400", "Fruit not found", nil, nil),
-	)
-	grp.GET("", ListFruits,
-		fizz.StatusCode(200),
+	}, tonic.Handler(DeleteFruit, 204))
+
+	// List all available fruits.
+	grp.GET("", []fizz.OperationOption{
 		fizz.Summary("List the fruits of the market"),
 		fizz.Response("400", "Bad request", nil, nil),
 		fizz.Header("X-Market-Listing-Size", "Listing size", fizz.Long),
-	)
+	}, tonic.Handler(ListFruits, 200))
 }

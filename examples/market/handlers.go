@@ -20,8 +20,8 @@ type FruitIdentityParams struct {
 // be used to filter the fruit's market listing.
 type ListFruitsParams struct {
 	Origin   *string  `query:"origin" description:"filter by fruit origin"`
-	PriceMin *float64 `query:"price_min" description:"filter by minimum inclusive price" validate:"min=1"`
-	PriceMax *float64 `query:"price_max" description:"filter by maximum inclusive price" validate:"max=15"`
+	PriceMin *float64 `query:"price_min" description:"filter by minimum inclusive price" validate:"omitempty,min=1"`
+	PriceMax *float64 `query:"price_max" description:"filter by maximum inclusive price" validate:"omitempty,max=15"`
 }
 
 // CreateFruit add a new fruit to the market.

@@ -1,7 +1,6 @@
 package openapi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/sirupsen/logrus"
-	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -116,7 +114,10 @@ func (g *Generator) UseFullSchemaNames(b bool) {
 // If a tag already exists with the same name, it is
 // overwritten.
 func (g *Generator) AddTag(name, desc string) {
-	// Search for an existing tag with the same,
+	if name == "" {
+		return
+	}
+	// Search for an existing tag with the same name,
 	// and update its description before returning
 	// if one is found.
 	for _, tag := range g.api.Tags {
@@ -132,16 +133,6 @@ func (g *Generator) AddTag(name, desc string) {
 		Name:        name,
 		Description: desc,
 	})
-}
-
-// JSON returns the JSON marshaling of the specification.
-func (g *Generator) JSON() ([]byte, error) {
-	return json.Marshal(g.api)
-}
-
-// YAML returns the YAML marshaling of the specification.
-func (g *Generator) YAML() ([]byte, error) {
-	return yaml.Marshal(g.api)
 }
 
 // AddOperation add a new operation to the OpenAPI specification
