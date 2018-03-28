@@ -24,12 +24,20 @@ const (
 	TypeDateTime
 	TypePassword
 
-	TypeUnsupported
-
 	// TypeComplex represents non-primitive types like
 	// Go struct, for which a schema must be generated.
 	TypeComplex
+
+	TypeUnsupported
 )
+
+// String implements fmt.Stringer for DataType.
+func (dt DataType) String() string {
+	if 0 <= dt && dt < DataType(len(datatypes)) {
+		return datatypes[dt]
+	}
+	return ""
+}
 
 // Type returns the type corresponding to the DataType.
 func (dt DataType) Type() string {
@@ -49,6 +57,7 @@ func (dt DataType) Format() string {
 
 var (
 	tofTime      = reflect.TypeOf(time.Time{})
+	tofDuration  = reflect.TypeOf(time.Duration(0))
 	tofByteSlice = reflect.TypeOf([]byte{})
 )
 
@@ -81,22 +90,35 @@ func DataTypeFromGo(t reflect.Type) DataType {
 		return TypeBoolean
 	case reflect.String:
 		return TypeString
-		// Handle known unsupported types.
-	case reflect.Func, reflect.Chan, reflect.Uintptr, reflect.UnsafePointer, reflect.Interface, reflect.Complex64, reflect.Complex128:
+	case reflect.Map, reflect.Struct, reflect.Array, reflect.Slice:
+		return TypeComplex
+	default:
+		// reflect.Func, reflect.Chan, reflect.Uintptr, reflect.UnsafePointer,
+		// reflect.Interface, reflect.Complex64, reflect.Complex128, ...
 		return TypeUnsupported
 	}
-	// Complex types:
-	// * reflect.Struct
-	// * reflect.Map
-	// * reflect.Slice
-	// * reflect.Array
-	return TypeComplex
 }
 
+// stringToType converts val to t's type and return the new value.
 func stringToType(val string, t reflect.Type) (interface{}, error) {
+	// Compare type to know Gokang types.
+	// IT MUST BE EXECUTED BEFORE swithing over
+	// primitives because a time.Duration is itself
+	// a int64.
+	if t.AssignableTo(tofTime) {
+		return time.Parse(time.RFC3339, val)
+	}
+	if t.AssignableTo(tofDuration) {
+		return time.ParseDuration(val)
+	}
 	switch t.Kind() {
 	case reflect.Bool:
-		return strconv.ParseBool(val)
+		// ParseBool returns an error if the value
+		// is invalid and cannot be converted to a
+		// boolean. We assume that invalid values
+		// are always falsy.
+		v, _ := strconv.ParseBool(val)
+		return v, nil
 	case reflect.String:
 		return val, nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -106,14 +128,23 @@ func stringToType(val string, t reflect.Type) (interface{}, error) {
 	case reflect.Float32, reflect.Float64:
 		return strconv.ParseFloat(val, t.Bits())
 	}
-	// Compare to.
-	if t.AssignableTo(tofTime) {
-		return time.Parse(time.RFC3339, val)
-	}
-	if t.AssignableTo(tofByteSlice) {
-		return time.ParseDuration(val)
-	}
 	return nil, fmt.Errorf("unknown type %s", t.String())
+}
+
+var datatypes = [...]string{
+	TypeInteger:     "Integer",
+	TypeLong:        "Long",
+	TypeFloat:       "Float",
+	TypeDouble:      "Double",
+	TypeString:      "String",
+	TypeByte:        "Byte",
+	TypeBinary:      "Binary",
+	TypeBoolean:     "Boolean",
+	TypeDate:        "Date",
+	TypeDateTime:    "DateTime",
+	TypePassword:    "Password",
+	TypeUnsupported: "Unsupported",
+	TypeComplex:     "Complex",
 }
 
 var types = [...]string{

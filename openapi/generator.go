@@ -588,11 +588,12 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 // newSchemaFromType creates a new OpenAPI schema from
 // the given reflect type.
 func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
-	// Dereference pointer.
 	if t == nil {
 		return nil
 	}
 	var nullable bool
+
+	// Dereference pointer.
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 		nullable = true
@@ -609,7 +610,7 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 		case reflect.Struct:
 			return g.newSchemaFromStruct(t)
 		default:
-			g.error("openapi/gen: encountered unknown type %s", t.Kind().String())
+			g.error("openapi/gen: encountered unknown complex type %s", t.Kind().String())
 			return nil
 		}
 	}
