@@ -7,6 +7,19 @@ import (
 	"time"
 )
 
+var (
+	tofTime      = reflect.TypeOf(time.Time{})
+	tofDuration  = reflect.TypeOf(time.Duration(0))
+	tofByteSlice = reflect.TypeOf([]byte{})
+	tofTypeNamer = reflect.TypeOf((*TypeNamer)(nil)).Elem()
+)
+
+// TypeNamer is the interface implemented
+// by the types that can name themselves.
+type TypeNamer interface {
+	Type() string
+}
+
 // DataType represents a primitive type.
 type DataType int
 
@@ -54,12 +67,6 @@ func (dt DataType) Format() string {
 	}
 	return ""
 }
-
-var (
-	tofTime      = reflect.TypeOf(time.Time{})
-	tofDuration  = reflect.TypeOf(time.Duration(0))
-	tofByteSlice = reflect.TypeOf([]byte{})
-)
 
 // DataTypeFromGo returns an OpenAPI data type
 // from a Golang value.

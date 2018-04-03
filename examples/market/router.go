@@ -19,6 +19,9 @@ func NewRouter() (*fizz.Fizz, error) {
 
 	fizz := fizz.NewFromEngine(engine)
 
+	// Override type names.
+	// fizz.Generator().OverrideTypeName(reflect.TypeOf(Fruit{}), "SweetFruit")
+
 	// Initialize the informations of
 	// the API that will be served with
 	// the specification.
