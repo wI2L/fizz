@@ -1,0 +1,75 @@
+{
+    "type": "object",
+    "properties": {
+        "A": {
+            "type": "string"
+        },
+        "B": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+        },
+        "C": {
+            "type": "boolean"
+        },
+        "D": {
+            "type": "array",
+            "items": {
+                "$ref": "#/components/schemas/Y"
+            }
+        },
+        "E": {
+            "type": "array",
+            "items": {
+                "$ref": "#/components/schemas/XXX"
+            },
+            "maxItems": 3,
+            "minItems": 3
+        },
+        "F": {
+            "$ref": "#/components/schemas/XXX"
+        },
+        "G": {
+            "$ref": "#/components/schemas/Y"
+        },
+        "H": {
+            "type": "number",
+            "format": "float"
+        },
+        "I": {
+            "type": "string",
+            "format": "date"
+        },
+        "J": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+        },
+        "K": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/components/schemas/Y"
+            }
+        },
+        "N": {
+            "type": "object",
+            "properties": {
+                "Na": {
+                    "type": "string"
+                },
+                "Nb": {
+                    "type": "string"
+                },
+                "Nc": {
+                    "type": "string",
+                    "format": "duration"
+                }
+            }
+        }
+    },
+    "required": [
+        "A",
+        "H",
+        "K"
+    ]
+}

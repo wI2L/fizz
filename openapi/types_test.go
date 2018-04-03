@@ -24,6 +24,7 @@ func TestFormatTypes(t *testing.T) {
 		TypeBinary:      {"string", "binary"},
 		TypeDate:        {"string", "date"},
 		TypeDateTime:    {"string", "date-time"},
+		TypeDuration:    {"string", "duration"},
 		TypePassword:    {"string", "password"},
 		TypeComplex:     {"string", ""},
 		TypeBoolean:     {"boolean", ""},
@@ -85,6 +86,7 @@ func TestComplexGoTypeToDataType(t *testing.T) {
 	tests := map[reflect.Type]DataType{
 		rt([]byte{}):                 TypeByte,
 		rt(time.Now()):               TypeDateTime,
+		rt(5 * time.Second):          TypeDuration,
 		rt(struct{}{}):               TypeComplex,
 		rt([]string{}):               TypeComplex,
 		rt([6]string{}):              TypeComplex,
@@ -119,6 +121,7 @@ func TestDataTypeStringer(t *testing.T) {
 		TypeBinary,
 		TypeDate,
 		TypeDateTime,
+		TypeDuration,
 		TypePassword,
 		TypeComplex,
 		TypeBoolean,

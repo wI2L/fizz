@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/loopfz/gadgeto/tonic"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -108,7 +108,7 @@ func (g *Generator) UseFullSchemaNames(b bool) {
 	g.fullNames = b
 }
 
-// OverrideTypeName reisters a custom name for a
+// OverrideTypeName registers a custom name for a
 // type that will override the default generation
 // and have precedence over types that implements
 // the TypeNamer interface.
@@ -149,6 +149,12 @@ func (g *Generator) AddTag(name, desc string) {
 	g.api.Tags = append(g.api.Tags, &Tag{
 		Name:        name,
 		Description: desc,
+	})
+	sort.SliceStable(g.api.Tags, func(i, j int) bool {
+		if g.api.Tags[i] != nil && g.api.Tags[j] != nil {
+			return g.api.Tags[i].Name < g.api.Tags[j].Name
+		}
+		return false
 	})
 }
 
@@ -346,17 +352,20 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 	}
 	// Sort operations parameters by location and name
 	// in ascending order.
-	paramsOrderedBy(paramyByLocation, paramyByName).Sort(op.Parameters)
+	paramsOrderedBy(
+		g.paramyByLocation,
+		g.paramyByName,
+	).Sort(op.Parameters)
 
 	return nil
 }
 
-func paramyByName(p1, p2 *ParameterOrRef) bool {
-	return p1.Name < p2.Name
+func (g *Generator) paramyByName(p1, p2 *ParameterOrRef) bool {
+	return g.resolveParameter(p1).Name < g.resolveParameter(p2).Name
 }
 
-func paramyByLocation(p1, p2 *ParameterOrRef) bool {
-	return locationsOrder[p1.In] < locationsOrder[p2.In]
+func (g *Generator) paramyByLocation(p1, p2 *ParameterOrRef) bool {
+	return locationsOrder[g.resolveParameter(p1).In] < locationsOrder[g.resolveParameter(p2).In]
 }
 
 // addStructFieldToOperation add the struct field of the type
@@ -442,6 +451,7 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 		if fname != "" && g.isStructFieldRequired(sf) {
 			required = true
 			schema.Required = append(schema.Required, fname)
+			sort.Strings(schema.Required)
 		}
 		schema.Properties[fname] = g.newSchemaFromStructField(sf, required, fname, g.typeName(t))
 	}
@@ -537,10 +547,10 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 	// Get the underlying schema, it may be a reference
 	// to a component, and update its fields using the
 	// informations in the struct field tags.
-	schema := g.schemaFromComponents(sor)
+	schema := g.resolveSchema(sor)
 
 	if schema == nil {
-		return nil
+		return sor
 	}
 	// Default value.
 	// See section 'Common Mistakes' at
@@ -744,7 +754,7 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 			// the topmost parent, skip it to avoid an infinite
 			// recursive loop.
 			if ft == parent {
-				logrus.Warnf("openapi/gen: skipped recursive embeding of type %s", g.typeName(parent))
+				g.errorf("openapi/gen: skipped recursive embeding of type %s", g.typeName(parent))
 			} else {
 				schema = g.flattenStructSchema(ft, parent, schema)
 			}
@@ -752,7 +762,7 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 		}
 		fname := fieldNameFromTag(f, mediaTags[tonic.MediaType()])
 		if fname == "" {
-			// Field has no name,, skip it.
+			// Field has no name, skip it.
 			return schema
 		}
 		var required bool
@@ -761,6 +771,7 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 		if fname != "" && g.isStructFieldRequired(f) {
 			required = true
 			schema.Required = append(schema.Required, fname)
+			sort.Strings(schema.Required)
 		}
 		schema.Properties[fname] = g.newSchemaFromStructField(f, required, fname, g.typeName(t))
 	}
@@ -788,20 +799,44 @@ func (g *Generator) isStructFieldRequired(sf reflect.StructField) bool {
 	return false
 }
 
-// schemaFromComponents returns either the inlined schema
+// resolveSchema returns either the inlined schema
 // in s or the one referenced in the API components.
-func (g *Generator) schemaFromComponents(schema *SchemaOrRef) *Schema {
-	if schema.Schema != nil && schema.Reference == nil {
-		return schema.Schema
+func (g *Generator) resolveSchema(s *SchemaOrRef) *Schema {
+	if s.Schema != nil && s.Reference == nil {
+		return s.Schema
 	}
-	if schema.Reference != nil {
-		parts := strings.Split(schema.Reference.Ref, "/")
+	if s.Reference != nil {
+		parts := strings.Split(s.Reference.Ref, "/")
 		if len(parts) == 4 {
 			if parts[0] == "#" && // relative ref
 				parts[1] == "components" &&
 				parts[2] == "schemas" &&
 				parts[3] != "" {
-				return g.api.Components.Schemas[parts[3]].Schema
+				ref, ok := g.api.Components.Schemas[parts[3]]
+				if ok && ref != nil {
+					return ref.Schema
+				}
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+// resolveParameter returns either the inlined parameter
+// in p or the one referenced in the API components.
+func (g *Generator) resolveParameter(p *ParameterOrRef) *Parameter {
+	if p.Parameter != nil && p.Reference == nil {
+		return p.Parameter
+	}
+	if p.Reference != nil {
+		parts := strings.Split(p.Reference.Ref, "/")
+		if len(parts) == 4 {
+			if parts[0] == "#" && // relative ref
+				parts[1] == "components" &&
+				parts[2] == "parameters" &&
+				parts[3] != "" {
+				return g.api.Components.Parameters[parts[3]].Parameter
 			}
 		}
 	}
@@ -815,6 +850,11 @@ func (g *Generator) schemaFromComponents(schema *SchemaOrRef) *Schema {
 func (g *Generator) typeName(t reflect.Type) string {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
+	}
+	if t.PkgPath() == "" {
+		// Predeclared or unnamed type, return an empty
+		// name, the schema will be inlined in the spec.
+		return ""
 	}
 	// If the name of the type was overidded,
 	// use it in priority.
@@ -832,8 +872,8 @@ func (g *Generator) typeName(t reflect.Type) string {
 	}
 	name := t.String() // package.name.
 	sp := strings.Index(name, ".")
-
 	pkg := name[:sp]
+
 	// If the package is the main package, remove
 	// the package part from the name.
 	if pkg == "main" {
@@ -912,7 +952,7 @@ func (g *Generator) errorf(format string, a ...interface{}) {
 }
 
 // fieldTagName returns the name of a struct field
-// extracted from a serialization tag using its name..
+// extracted from a serialization tag using its name.
 func fieldNameFromTag(sf reflect.StructField, tagName string) string {
 	v, ok := sf.Tag.Lookup(tagName)
 	if !ok {
