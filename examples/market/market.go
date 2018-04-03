@@ -15,6 +15,9 @@ type Fruit struct {
 	AddedAt time.Time `json:"-" binding:"-" description:"Date of addition of the fruit to the market"`
 }
 
+// Type implements openapi.TypeNamer for Fruit.
+func (f *Fruit) Type() string { return "RottenFruit" }
+
 // Market is a fruit market.
 type Market struct {
 	fruits map[string]*Fruit

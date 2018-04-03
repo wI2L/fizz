@@ -219,6 +219,26 @@ f.GET("/openapi.json", nil, fizz.OpenAPI(infos, "json"))
 ```
 **NOTE**: The generator will never panic. However, it is strongly recommended to call `fizz.Errors` to retrieve and handle the errors that may have occured during the generation of the specification before starting your API.
 
+#### Components
+
+The output types of your handlers are registered as components within the generated specification. By default, the name used for each component is composed of the package and type name concatenated using _CamelCase_ style, and does not contain the full import path. As such, please ensure that you don't use the same type name in two eponym package in your application.
+
+The names of the components can be customized in two different ways.
+
+##### Global override
+
+Override the name of a type globally before registering your handlers. This has the highest precedence.
+```go
+fizz.Generator().OverrideTypeName(reflect.TypeOf(T{}), "OverridedName")
+```
+
+##### Interface
+
+Implements the `openapi.TypeNamer` interface on your types.
+```go
+func (t *T) Type() string { return "OverridedName" }
+```
+
 #### Markdown
 
 > Throughout the specification description fields are noted as supporting CommonMark markdown formatting. Where OpenAPI tooling renders rich text it MUST support, at a minimum, markdown syntax as described by CommonMark 0.27. Tooling MAY choose to ignore some CommonMark features to address security concerns.
@@ -229,7 +249,6 @@ To help you write markdown descriptions in Go, a simple builder is available in 
 ## Known limitations
 
 - Since *OpenAPI* is based on the *JSON Schema* specification itself, objects (Go maps) with keys that are not of type `string` are not supported and will be ignored during the generation of the specification.
-- The output types of your handlers are registered as components within the generated specification. By default, the name used for each component is composed of the package and type name concatenated using CamelCase style, and does not contain the full import path. As such, please ensure that you don't use the same type name in two eponym package in your application. You can use the method `UseFullSchemaNames` of the generator to remove the package part in the component names.
 - Recursive embedding of the same type is not supported, at any level of recursion. The generator will warn and skip the offending fields.
    ```go
    type A struct {

@@ -33,6 +33,7 @@ type Generator struct {
 	api           *OpenAPI
 	config        *SpecGenConfig
 	schemaTypes   map[reflect.Type]struct{}
+	typeNames     map[reflect.Type]string
 	operationsIDS map[string]struct{}
 	errors        []error
 	fullNames     bool
@@ -58,6 +59,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 			Components: components,
 		},
 		schemaTypes:   make(map[reflect.Type]struct{}),
+		typeNames:     make(map[reflect.Type]string),
 		operationsIDS: make(map[string]struct{}),
 		fullNames:     true,
 	}, nil
@@ -66,20 +68,15 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 // SpecGenConfig represents the configuration
 // of the spec generator.
 type SpecGenConfig struct {
-	// Name of the tag used by the validator.v9
+	// Name of the tag used by the validator.v8
 	// package. This is used by the spec generator
 	// to determine if a field is required.
-	ValidatorTag string
-	// Name of the tag that represents the path location.
-	PathLocationTag string
-	// Name of the tag that represents the query location.
-	QueryLocationTag string
-	// Name of the tag that represents the header location.
+	ValidatorTag      string
+	PathLocationTag   string
+	QueryLocationTag  string
 	HeaderLocationTag string
-	// Name of the that that contains enum values.
-	EnumTag string
-	// Name of the tag that contains default value.
-	DefaultTag string
+	EnumTag           string
+	DefaultTag        string
 }
 
 // SetInfo uses the given OpenAPI info for the
@@ -88,9 +85,10 @@ func (g *Generator) SetInfo(info *Info) {
 	g.api.Info = info
 }
 
-// API returns the internal API spec.
+// API returns a copy of the internal OpenAPI object.
 func (g *Generator) API() *OpenAPI {
-	return g.api
+	cpy := *g.api
+	return &cpy
 }
 
 // Errors returns the errors thar occurred during
@@ -108,6 +106,25 @@ func (g *Generator) Errors() []error {
 // Default to true.
 func (g *Generator) UseFullSchemaNames(b bool) {
 	g.fullNames = b
+}
+
+// OverrideTypeName reisters a custom name for a
+// type that will override the default generation
+// and have precedence over types that implements
+// the TypeNamer interface.
+func (g *Generator) OverrideTypeName(t reflect.Type, name string) error {
+	if name == "" {
+		return errors.New("type name is empty")
+	}
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if _, ok := g.typeNames[t]; ok {
+		return errors.New("type name already overidded")
+	}
+	g.typeNames[t] = name
+
+	return nil
 }
 
 // AddTag adds a new tag to the OpenAPI specification.
@@ -184,9 +201,6 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 		}
 	}
 	if out != nil {
-		if out.Kind() == reflect.Ptr {
-			out = out.Elem()
-		}
 		// Generate the default response from the tonic
 		// handler return type.
 		if err := g.setOperationResponse(op, out, strconv.Itoa(info.StatusCode), tonic.MediaType(), info.StatusDescription, info.Headers); err != nil {
@@ -317,7 +331,7 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 			// the topmost parent, skip it to avoid an infinite
 			// recursive loop.
 			if sft == parent {
-				g.error(
+				g.errorf(
 					"skipped recursive embeding of type %s for parameter %s",
 					g.typeName(parent), sf.Name,
 				)
@@ -361,7 +375,7 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 		// same location already exists.
 		for _, p := range op.Parameters {
 			if p != nil && (p.Name == param.Name) && (p.In == param.In) {
-				g.error(
+				g.errorf(
 					"openapi/gen: duplicate parameter found in type %s: name=%s, location=%s",
 					g.typeName(t), param.Name, param.In,
 				)
@@ -415,7 +429,7 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 
 		// Check if a field with the same name already exists.
 		if _, ok := schema.Properties[fname]; ok {
-			g.error(
+			g.errorf(
 				"openapi/gen: duplicate request body parameter %s found in type %s",
 				fname, g.typeName(t),
 			)
@@ -533,10 +547,10 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 	// https://swagger.io/docs/specification/describing-parameters/
 	if d := sf.Tag.Get(g.config.DefaultTag); d != "" {
 		if required {
-			g.error("openapi/gen: field %s of type %s cannot be required and have a default value", fname, pname)
+			g.errorf("openapi/gen: field %s of type %s cannot be required and have a default value", fname, pname)
 		} else {
 			if v, err := stringToType(d, sf.Type); err != nil {
-				g.error(
+				g.errorf(
 					"openapi/gen: default value %s of field %s in type %s cannot be converted to field's type: %s",
 					d, fname, pname, err,
 				)
@@ -551,7 +565,7 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 		values := strings.Split(es, ",")
 		for _, val := range values {
 			if v, err := stringToType(val, sf.Type); err != nil {
-				g.error(
+				g.errorf(
 					"openapi/gen: enum value %s of field %s in type %s cannot be converted to field's type: %s",
 					val, fname, pname, err,
 				)
@@ -600,7 +614,7 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 	}
 	dt := DataTypeFromGo(t)
 	if dt == TypeUnsupported {
-		g.error("openapi/gen: encountered unsupported type %s", t.Kind().String())
+		g.errorf("openapi/gen: encountered unsupported type %s", t.Kind().String())
 		return nil
 	}
 	if dt == TypeComplex {
@@ -610,7 +624,7 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 		case reflect.Struct:
 			return g.newSchemaFromStruct(t)
 		default:
-			g.error("openapi/gen: encountered unknown complex type %s", t.Kind().String())
+			g.errorf("openapi/gen: encountered unknown complex type %s", t.Kind().String())
 			return nil
 		}
 	}
@@ -641,7 +655,7 @@ func (g *Generator) buildSchemaRecursive(t reflect.Type) *SchemaOrRef {
 		// JSON Schema allow only strings as
 		// object key.
 		if t.Key().Kind() != reflect.String {
-			g.error("openapi/gen: encountered type Map with keys of unsupported type %s", t.Key().Kind().String())
+			g.errorf("openapi/gen: encountered type Map with keys of unsupported type %s", t.Key().Kind().String())
 			return &SchemaOrRef{Schema: schema}
 		}
 		schema.AdditionalProperties = g.buildSchemaRecursive(t.Elem())
@@ -799,6 +813,23 @@ func (g *Generator) schemaFromComponents(schema *SchemaOrRef) *Schema {
 // of the given type, transformed to CamelCase without
 // a dot separator between the two parts.
 func (g *Generator) typeName(t reflect.Type) string {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	// If the name of the type was overidded,
+	// use it in priority.
+	if name, ok := g.typeNames[t]; ok {
+		return name
+	}
+	// Create a new instance of t's type and use a
+	// type assertion to check if it implements the
+	// TypeNamer interface.
+	v := reflect.New(t)
+	if v.CanInterface() {
+		if tn, ok := v.Interface().(TypeNamer); ok {
+			return tn.Type()
+		}
+	}
 	name := t.String() // package.name.
 	sp := strings.Index(name, ".")
 
@@ -875,7 +906,7 @@ func (g *Generator) updateSchemaValidation(schema *Schema, sf reflect.StructFiel
 	return schema
 }
 
-func (g *Generator) error(format string, a ...interface{}) {
+func (g *Generator) errorf(format string, a ...interface{}) {
 	err := fmt.Errorf(format, a...)
 	g.errors = append(g.errors, err)
 }
