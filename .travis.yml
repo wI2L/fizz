@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - 1.10.x
+  - master
+
+jobs:
+  allow_failures:
+    - go: master
+
+before_install:
+  - go get github.com/mattn/goveralls
+
+script:
+  - go vet ./... 
+  - $GOPATH/bin/goveralls -service=travis-ci

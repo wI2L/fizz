@@ -3,13 +3,11 @@
 <p align="center"><img src="images/lemon.png" height="200px" width="auto" alt="Gin Fizz"></p><p align="center">Fizz is a wrapper for <strong>Gin</strong> based on <i>gadgeto/tonic</i>.</p>
 <p align="center">It generates wrapping gin-compatible handlers that do all the repetitive work and wrap the call to your handlers. It can also generates an *almost* complete <strong>OpenAPI 3</strong> specification of your API.</p>
 <p align="center"><br>
-<a href="https://godoc.org/github.com/wI2L/fizz"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a> <a href="https://goreportcard.com/report/wI2L/fizz"><img src="https://goreportcard.com/badge/github.com/wI2L/fizz"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+<a href="https://godoc.org/github.com/wI2L/fizz"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a> <a href="https://goreportcard.com/report/wI2L/fizz"><img src="https://goreportcard.com/badge/github.com/wI2L/fizz"></a> <a href="https://travis-ci.org/wI2L/fizz"><img src="https://travis-ci.org/wI2L/fizz.svg?branch=master"></a> <a href='https://coveralls.io/github/wI2L/fizz?branch=master'><img src='https://coveralls.io/repos/github/wI2L/fizz/badge.svg?branch=master' alt='Coverage Status' /></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 <br>
 </p>
 
 ---
-
-## Routing
 
 To create a Fizz instance, you can pass an existing *Gin* engine to `fizz.NewFromEngine`, or use `fizz.New` that will use a new default *Gin* engine.
 
@@ -72,13 +70,15 @@ fizz.Deprecated(deprecated bool)
 
 // Add an additional response to the operation.
 // model and header may be `nil`.
-fizz.Response(code, desc string, model interface{}, headers []*ResponseHeader)
+fizz.Response(statusCode, desc string, model interface{}, headers []*ResponseHeader)
 
 // Add an additional header to the default response.
 // Model can be of any type, and may also be `nil`,
 // in which case the string type will be used as default.
 fizz.Header(name, desc string, model interface{})
 ```
+
+**NOTE:** The fist argument of the `fizz.Reponse` method which represents an HTTP status code is of type *string* because the spec accept the value `default`. See the [Responses Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject) documentation for more informations.
 
 To help you declare additional headers, predefined variables for Go primitives types that you can use as the third argument of the `fizz.Header` method are available.
 ```go
@@ -191,7 +191,7 @@ To be able to make a difference between a missing value and the zero value of a 
 
 To explicitly ignore a parameter from the request body, use the tag `binding:"-"`.
 
-Not that the *OpenAPI* generator will ignore request body parameters for the routes with method a method that is one of `GET`, `DELETE` or `HEAD`.
+Note that the *OpenAPI* generator will ignore request body parameters for the routes with a method that is one of `GET`, `DELETE` or `HEAD`.
    > GET, DELETE and HEAD are no longer allowed to have request body because it does not have defined semantics as per [RFC 7231](https://tools.ietf.org/html/rfc7231#section-4.3).
 	[*source*](https://swagger.io/docs/specification/describing-request-body/)
 
