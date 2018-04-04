@@ -29,7 +29,7 @@ srv.ListenAndServe()
 
 ### Handlers
 
-Fizz abstracts the `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` and `HEAD` methods of a *Gin* engine. These functions accept a variadic list of handlers as the last parameter, but since Fizz relies on *tonic* to retrieve the informations required to generate the *OpenAPI* specification of the operation, **only one of the handlers registered MUST be wrapped with Tonic**.
+Fizz abstracts the `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD` and `TRACE` methods of a *Gin* engine. These functions accept a variadic list of handlers as the last parameter, but since Fizz relies on *tonic* to retrieve the informations required to generate the *OpenAPI* specification of the operation, **only one of the handlers registered MUST be wrapped with Tonic**.
 
 In the following example, the `BarHandler` is a simple middleware that will be executed before the `FooHandler`, but the generator will use the input/output type of the `FooHandler` to generate the specification of the operation.
 

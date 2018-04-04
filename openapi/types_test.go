@@ -82,7 +82,6 @@ func TestPrimitiveGoTypeToDataType(t *testing.T) {
 // TestComplexGoTypeToDataType tests that a complex Go
 // type can be converted to a DataType.
 func TestComplexGoTypeToDataType(t *testing.T) {
-	rt := reflect.TypeOf
 	tests := map[reflect.Type]DataType{
 		rt([]byte{}):                 TypeByte,
 		rt(time.Now()):               TypeDateTime,
@@ -176,7 +175,6 @@ func TestStringToDurationType(t *testing.T) {
 // TestStringToType tests that a string can be
 // converted to the kind of a reflect.Type value.
 func TestStringToType(t *testing.T) {
-	rt := reflect.TypeOf
 	tests := map[string]struct {
 		t reflect.Type
 		v interface{}

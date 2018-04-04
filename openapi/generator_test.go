@@ -9,6 +9,7 @@ import (
 
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/stretchr/testify/assert"
+	"github.com/tjarratt/babble"
 )
 
 var genConfig = &SpecGenConfig{
@@ -67,10 +68,8 @@ func TestStructFieldName(t *testing.T) {
 }
 
 func TestAddTag(t *testing.T) {
-	g, err := NewGenerator(genConfig)
-	if err != nil {
-		t.Error(err)
-	}
+	g := gen(t)
+
 	g.AddTag("", "Test routes")
 	assert.Len(t, g.API().Tags, 0)
 
@@ -96,10 +95,8 @@ func TestAddTag(t *testing.T) {
 // TestSchemaFromPrimitiveType tests that a schema
 // can be created given a primitive input type.
 func TestSchemaFromPrimitiveType(t *testing.T) {
-	g, err := NewGenerator(genConfig)
-	if err != nil {
-		t.Error(err)
-	}
+	g := gen(t)
+
 	// Use a pointer to primitive type to test
 	// pointer dereference and property nullable.
 	schema := g.newSchemaFromType(rt(new(int64)))
@@ -117,10 +114,8 @@ func TestSchemaFromPrimitiveType(t *testing.T) {
 // TestSchemaFromUnsupportedType tests that a schema
 // cannot be created given an unsupported input type.
 func TestSchemaFromUnsupportedType(t *testing.T) {
-	g, err := NewGenerator(genConfig)
-	if err != nil {
-		t.Error(err)
-	}
+	g := gen(t)
+
 	// Test with nil input.
 	schema := g.newSchemaFromType(nil)
 	assert.Nil(t, schema)
@@ -134,10 +129,7 @@ func TestSchemaFromUnsupportedType(t *testing.T) {
 // TestSchemaFromComplex tests that a schema
 // can be created from a complex type.
 func TestSchemaFromComplex(t *testing.T) {
-	g, err := NewGenerator(genConfig)
-	if err != nil {
-		t.Error(err)
-	}
+	g := gen(t)
 	g.UseFullSchemaNames(false)
 
 	sor := g.newSchemaFromType(rt(new(X)))
@@ -157,7 +149,7 @@ func TestSchemaFromComplex(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/X.json.
-	expected, err := ioutil.ReadFile("../testdata/X.json")
+	expected, err := ioutil.ReadFile("../testdata/schemas/X.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -178,7 +170,7 @@ func TestSchemaFromComplex(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/Y.json.
-	expected, err = ioutil.ReadFile("../testdata/Y.json")
+	expected, err = ioutil.ReadFile("../testdata/schemas/Y.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -224,10 +216,7 @@ func TestAddOperation(t *testing.T) {
 
 	var Header string
 
-	g, err := NewGenerator(genConfig)
-	if err != nil {
-		t.Error(err)
-	}
+	g := gen(t)
 	g.UseFullSchemaNames(false)
 
 	path := "/test/:A"
@@ -261,7 +250,7 @@ func TestAddOperation(t *testing.T) {
 			},
 		},
 	}
-	err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
+	err := g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
 	if err != nil {
 		t.Error(err)
 	}
@@ -278,7 +267,7 @@ func TestAddOperation(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/op.json.
-	expected, err := ioutil.ReadFile("../testdata/op.json")
+	expected, err := ioutil.ReadFile("../testdata/schemas/op.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -321,4 +310,55 @@ func TestTypeName(t *testing.T) {
 
 	// Unnamed type.
 	assert.Equal(t, "", g.typeName(rt(struct{}{})))
+}
+
+// TestSetInfo tests that the informations
+// of the spec can be modified.
+func TestSetInfo(t *testing.T) {
+	g := gen(t)
+
+	infos := &Info{
+		Description: "Test",
+	}
+	g.SetInfo(infos)
+
+	assert.NotNil(t, g.API().Info)
+	assert.Equal(t, infos, g.API().Info)
+}
+
+// TestSetOperationByMethod tests that an operation
+// is added to a path item accordingly to the given
+// HTTP method.
+func TestSetOperationByMethod(t *testing.T) {
+	babbler := babble.NewBabbler()
+
+	pi := &PathItem{}
+	for method, ptr := range map[string]**Operation{
+		"GET":     &pi.GET,
+		"POST":    &pi.POST,
+		"PUT":     &pi.PUT,
+		"PATCH":   &pi.PATCH,
+		"DELETE":  &pi.DELETE,
+		"HEAD":    &pi.HEAD,
+		"OPTIONS": &pi.OPTIONS,
+		"TRACE":   &pi.TRACE,
+	} {
+		desc := babbler.Babble()
+		op := &Operation{
+			Description: desc,
+		}
+		setOperationBymethod(pi, op, method)
+		assert.Equal(t, op, *ptr)
+		assert.Equal(t, desc, (*ptr).Description)
+	}
+}
+
+func gen(t *testing.T) *Generator {
+	g, err := NewGenerator(genConfig)
+	if err != nil {
+		t.Error(err)
+	}
+	g.UseFullSchemaNames(false)
+
+	return g
 }

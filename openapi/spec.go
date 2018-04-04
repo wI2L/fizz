@@ -7,7 +7,7 @@ type OpenAPI struct {
 	Info       *Info       `json:"info" yaml:"info"`
 	Servers    []*Server   `json:"servers,omitempty" yaml:"servers,omitempty"`
 	Paths      Paths       `json:"paths" yaml:"paths"`
-	Components *Components `json:"components,omitempty" yaml:"component,omitempty"`
+	Components *Components `json:"components,omitempty" yaml:"components,omitempty"`
 	Tags       []*Tag      `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
@@ -50,7 +50,7 @@ type License struct {
 type Server struct {
 	URL         string                     `json:"url" yaml:"url"`
 	Description string                     `json:"description,omitempty" yaml:"description,omitempty"`
-	Variables   map[string]*ServerVariable `json:"variables,omitempty" yaml:"omitempty"`
+	Variables   map[string]*ServerVariable `json:"variables,omitempty" yaml:"variables,omitempty"`
 }
 
 // ServerVariable represents a server variable for server
@@ -69,7 +69,7 @@ type Paths map[string]*PathItem
 // API path.
 type PathItem struct {
 	Ref         string            `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	Summary     string            `json:"sumamry,omitempty" yaml:"summary,omitempty"`
+	Summary     string            `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
 	GET         *Operation        `json:"get,omitempty" yaml:"get,omitempty"`
 	PUT         *Operation        `json:"put,omitempty" yaml:"put,omitempty"`
@@ -108,6 +108,14 @@ type ParameterOrRef struct {
 	*Reference
 }
 
+// MarshalYAML implements yaml.Marshaler for ParameterOrRef.
+func (por *ParameterOrRef) MarshalYAML() (interface{}, error) {
+	if por.Parameter != nil {
+		return por.Parameter, nil
+	}
+	return por.Reference, nil
+}
+
 // RequestBody represents a request body.
 type RequestBody struct {
 	Description string                `json:"description,omitempty" yaml:"description,omitempty"`
@@ -120,6 +128,14 @@ type RequestBody struct {
 type SchemaOrRef struct {
 	*Schema
 	*Reference
+}
+
+// MarshalYAML implements yaml.Marshaler for SchemaOrRef.
+func (sor *SchemaOrRef) MarshalYAML() (interface{}, error) {
+	if sor.Schema != nil {
+		return sor.Schema, nil
+	}
+	return sor.Reference, nil
 }
 
 // Schema represents the definition of input and output data
@@ -136,7 +152,7 @@ type Schema struct {
 	Properties           map[string]*SchemaOrRef `json:"properties,omitempty" yaml:"properties,omitempty"`
 	AdditionalProperties *SchemaOrRef            `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 	Description          string                  `json:"description,omitempty" yaml:"description,omitempty"`
-	Format               string                  `json:"format,omitempty" yaml:"omitempty"`
+	Format               string                  `json:"format,omitempty" yaml:"format,omitempty"`
 	Default              interface{}             `json:"default,omitempty" yaml:"default,omitempty"`
 
 	// The following properties are taken directly from the
@@ -164,12 +180,12 @@ type Schema struct {
 // Operation describes an API operation on a path.
 type Operation struct {
 	Tags        []string          `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Summary     string            `json:"summary,omitempty" yaml:"sumamry,omitempty"`
+	Summary     string            `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
-	ID          string            `json:"operationId,omitempty" yaml:"omitempty"`
+	ID          string            `json:"operationId,omitempty" yaml:"operationId,omitempty"`
 	Parameters  []*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	RequestBody *RequestBody      `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
-	Responses   Responses         `json:"responses,omitempty" yaml:"response,omitempty"`
+	Responses   Responses         `json:"responses,omitempty" yaml:"responses,omitempty"`
 	Deprecated  bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	Servers     []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
 }
@@ -186,6 +202,14 @@ type ReponseOrRef struct {
 	*Reference
 }
 
+// MarshalYAML implements yaml.Marshaler for ReponseOrRef.
+func (ror *ReponseOrRef) MarshalYAML() (interface{}, error) {
+	if ror.Response != nil {
+		return ror.Response, nil
+	}
+	return ror.Reference, nil
+}
+
 // Response describes a single response from an API.
 type Response struct {
 	Description string                     `json:"description,omitempty" yaml:"description,omitempty"`
@@ -198,6 +222,14 @@ type Response struct {
 type HeaderOrRef struct {
 	*Header
 	*Reference
+}
+
+// MarshalYAML implements yaml.Marshaler for HeaderOrRef.
+func (hor *HeaderOrRef) MarshalYAML() (interface{}, error) {
+	if hor.Header != nil {
+		return hor.Header, nil
+	}
+	return hor.Reference, nil
 }
 
 // Header represents an HTTP header.
@@ -216,6 +248,14 @@ type MediaTypeOrRef struct {
 	*Reference
 }
 
+// MarshalYAML implements yaml.Marshaler for MediaTypeOrRef.
+func (mtor *MediaTypeOrRef) MarshalYAML() (interface{}, error) {
+	if mtor.MediaType != nil {
+		return mtor.MediaType, nil
+	}
+	return mtor.Reference, nil
+}
+
 // MediaType represents the type of a media.
 type MediaType struct {
 	Schema   *SchemaOrRef             `json:"schema" yaml:"schema"`
@@ -231,9 +271,17 @@ type ExampleOrRef struct {
 	*Reference
 }
 
+// MarshalYAML implements yaml.Marshaler for ExampleOrRef.
+func (eor *ExampleOrRef) MarshalYAML() (interface{}, error) {
+	if eor.Example != nil {
+		return eor.Example, nil
+	}
+	return eor.Reference, nil
+}
+
 // Example represents the exanple of a media type.
 type Example struct {
-	Summary       string      `json:"sumamry,omitempty" yaml:"summary,omitempty"`
+	Summary       string      `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description   string      `json:"description,omitempty" yaml:"description,omitempty"`
 	Value         interface{} `json:"value,omitempty" yaml:"value,omitempty"`
 	ExternalValue string      `json:"externalValue,omitempty" yaml:"externalValue,omitempty"`

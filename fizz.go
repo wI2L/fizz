@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +45,7 @@ type RouterGroup struct {
 // New creates a new Fizz wrapper for
 // a default Gin engine.
 func New() *Fizz {
-	return NewFromEngine(gin.Default())
+	return NewFromEngine(gin.New())
 }
 
 // NewFromEngine creates a new Fizz wrapper
@@ -147,6 +148,11 @@ func (g *RouterGroup) HEAD(path string, infos []OperationOption, handlers ...gin
 	return g.Handle(path, "HEAD", infos, handlers...)
 }
 
+// TRACE is a shortcut to register a new handler with the TRACE method.
+func (g *RouterGroup) TRACE(path string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
+	return g.Handle(path, "TRACE", infos, handlers...)
+}
+
 // Handle registers a new request handler that is wrapped
 // with Tonic and documented in the OpenAPI specification.
 func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handlers ...gin.HandlerFunc) *RouterGroup {
@@ -201,6 +207,7 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
 	f.gen.SetInfo(info)
 
+	ct = strings.ToLower(ct)
 	if ct == "" {
 		ct = "json"
 	}
@@ -214,7 +221,7 @@ func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
 			c.YAML(200, f.gen.API())
 		}
 	}
-	return nil
+	panic("invalid content type, use JSON or YAML")
 }
 
 // OperationOption represents an option-pattern function
