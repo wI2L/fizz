@@ -44,11 +44,9 @@ func (pms *paramsMultiSorter) Less(i, j int) bool {
 	for k = 0; k < len(pms.less)-1; k++ {
 		less := pms.less[k]
 		switch {
-		case less(p, q):
-			// p < q, so we have a decision.
+		case less(p, q): // p < q, so we have a decision.
 			return true
-		case less(q, p):
-			// p > q, so we have a decision.
+		case less(q, p): // p > q, so we have a decision.
 			return false
 		}
 		// p == q; try the next comparison.

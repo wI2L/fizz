@@ -35,6 +35,7 @@ const (
 	TypeBoolean
 	TypeDate
 	TypeDateTime
+	TypeDuration
 	TypePassword
 
 	// TypeComplex represents non-primitive types like
@@ -77,6 +78,9 @@ func DataTypeFromGo(t reflect.Type) DataType {
 	}
 	if t.AssignableTo(tofTime) {
 		return TypeDateTime
+	}
+	if t.AssignableTo(tofDuration) {
+		return TypeDuration
 	}
 	if t.AssignableTo(tofByteSlice) {
 		return TypeByte
@@ -149,6 +153,7 @@ var datatypes = [...]string{
 	TypeBoolean:     "Boolean",
 	TypeDate:        "Date",
 	TypeDateTime:    "DateTime",
+	TypeDuration:    "Duration",
 	TypePassword:    "Password",
 	TypeUnsupported: "Unsupported",
 	TypeComplex:     "Complex",
@@ -165,6 +170,7 @@ var types = [...]string{
 	TypeBoolean:  "boolean",
 	TypeDate:     "string",
 	TypeDateTime: "string",
+	TypeDuration: "string",
 	TypePassword: "string",
 	TypeComplex:  "string",
 }
@@ -180,6 +186,7 @@ var formats = [...]string{
 	TypeBoolean:  "",
 	TypeDate:     "date",
 	TypeDateTime: "date-time",
+	TypeDuration: "duration",
 	TypePassword: "password",
 	TypeComplex:  "",
 }
