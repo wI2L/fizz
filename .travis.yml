@@ -9,8 +9,11 @@ jobs:
     - go: master
 
 before_install:
-  - go get github.com/mattn/goveralls
+  - go get -t -v ./...
 
 script:
   - go vet ./... 
-  - $GOPATH/bin/goveralls -service=travis-ci
+  - ./test.sh
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
