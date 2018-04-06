@@ -1,0 +1,35 @@
+{
+    "type": "object",
+    "properties": {
+        "A": {
+            "type": "string",
+            "maxLength": 12,
+            "minLength": 12
+        },
+        "B": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100,
+            "minimum": 5
+        },
+        "C": {
+            "type": "array",
+            "items": {
+                "type": "boolean"
+            },
+            "maxItems": 50,
+            "minItems": 50
+        },
+        "D": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            },
+            "maxProperties": 5,
+            "minProperties": 5
+        },
+        "E": {
+            "type": "string"
+        }
+    }
+}

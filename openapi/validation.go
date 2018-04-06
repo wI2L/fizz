@@ -2,30 +2,6 @@ package openapi
 
 import "reflect"
 
-// setSchemaLen sets the given len to the appropriate
-// schema field based on the given type.
-func setSchemaLen(schema *Schema, len int, t reflect.Type) {
-	if isNumber(t) {
-		schema.Minimum = len
-		schema.Maximum = len
-	} else if isString(t) {
-		if len >= 0 {
-			schema.MinLength = len
-			schema.MaxLength = len
-		}
-	} else if isMap(t) {
-		if len >= 0 {
-			schema.MinProperties = len
-			schema.MaxProperties = len
-		}
-	} else if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
-		if len >= 0 {
-			schema.MinItems = len
-			schema.MaxItems = len
-		}
-	}
-}
-
 // setSchemaMax sets the given maximum to the appropriate
 // schema field based on the given type.
 func setSchemaMax(schema *Schema, max int, t reflect.Type) {
@@ -39,7 +15,7 @@ func setSchemaMax(schema *Schema, max int, t reflect.Type) {
 		if max >= 0 {
 			schema.MaxProperties = max
 		}
-	} else if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
+	} else if t.Kind() == reflect.Slice {
 		if max >= 0 {
 			schema.MaxItems = max
 		}
@@ -59,7 +35,7 @@ func setSchemaMin(schema *Schema, min int, t reflect.Type) {
 		if min >= 0 {
 			schema.MinProperties = min
 		}
-	} else if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
+	} else if t.Kind() == reflect.Slice {
 		if min >= 0 {
 			schema.MinItems = min
 		}
@@ -72,17 +48,17 @@ func setSchemaEq(schema *Schema, eq int, t reflect.Type) {
 	// For numbers and strings, equals tag would translate
 	// to the `const` property of the JSON Validation spec
 	// but OpenAPI doesn't support it.
-	if isMap(t) {
-		if eq >= 0 {
-			schema.MinProperties = eq
-			schema.MaxProperties = eq
-		}
-	} else if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
-		if eq >= 0 {
-			schema.MinItems = eq
-			schema.MaxItems = eq
-		}
+	if isNumber(t) || isString(t) {
+		return
 	}
+	setSchemaLen(schema, eq, t)
+}
+
+// setSchemaLen sets the given len to the appropriate
+// schema field based on the given type.
+func setSchemaLen(schema *Schema, len int, t reflect.Type) {
+	setSchemaMax(schema, len, t)
+	setSchemaMin(schema, len, t)
 }
 
 // isString returns whether the given reflect type represents a string.
