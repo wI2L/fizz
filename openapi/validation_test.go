@@ -34,6 +34,11 @@ func TestSchemaValidation(t *testing.T) {
 		C []bool            `validate:"len=50"`
 		D map[string]string `validate:"eq=5"`
 		E string            `validate:"eq=15"`
+		F string            `validate:"lt=8"`
+		G string            `validate:"gt=6"`
+		H int               `validate:"len=foo"`    // ignored, cannot convert "foo" to integer
+		I []string          `validate:"dive,len=6"` // ignored, dive option present before tag
+		J map[string]string `validate:"keys,max=6"` // ignored, keys option present before tag
 	}
 	g := gen(t)
 

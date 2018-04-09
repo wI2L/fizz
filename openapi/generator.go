@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/loopfz/gadgeto/tonic"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -46,7 +47,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 	}
 	components := &Components{
 		Schemas:    make(map[string]*SchemaOrRef),
-		Responses:  make(map[string]*ReponseOrRef),
+		Responses:  make(map[string]*ResponseOrRef),
 		Parameters: make(map[string]*ParameterOrRef),
 		Headers:    make(map[string]*HeaderOrRef),
 	}
@@ -162,14 +163,18 @@ func (g *Generator) AddTag(name, desc string) {
 // using the method and path of the route and the tonic
 // handler informations.
 func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type, info *OperationInfo) error {
+	op := &Operation{
+		ID: uuid.Must(uuid.NewV4()).String(),
+	}
 	path = rewritePath(path)
 
-	// Check that the ID of the operation is unique.
-	if _, ok := g.operationsIDS[info.ID]; ok {
-		return fmt.Errorf("ID %s is already used by another operation", info.ID)
+	if info != nil {
+		// Ensure that the provided operation ID is unique.
+		if _, ok := g.operationsIDS[info.ID]; ok {
+			return fmt.Errorf("ID %s is already used by another operation", info.ID)
+		}
+		g.operationsIDS[info.ID] = struct{}{}
 	}
-	g.operationsIDS[info.ID] = struct{}{}
-
 	// If a PathItem does not exists for this
 	// path, create a new one.
 	item, ok := g.api.Paths[path]
@@ -179,12 +184,12 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 	}
 	// Create a new operation and set it
 	// to the according method of the PathItem.
-	op := &Operation{
-		ID:          info.ID,
-		Summary:     info.Summary,
-		Description: info.Description,
-		Deprecated:  info.Deprecated,
-		Responses:   make(Responses),
+	if info != nil {
+		op.ID = info.ID
+		op.Summary = info.Summary
+		op.Description = info.Description
+		op.Deprecated = info.Deprecated
+		op.Responses = make(Responses)
 	}
 	if tag != "" {
 		op.Tags = append(op.Tags, tag)
@@ -308,7 +313,7 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 			}}
 		}
 	}
-	op.Responses[code] = &ReponseOrRef{Response: r}
+	op.Responses[code] = &ResponseOrRef{Response: r}
 
 	return nil
 }
@@ -317,7 +322,7 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 // to the given operation.
 func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, allowBody bool) error {
 	if t.Kind() != reflect.Struct {
-		return nil
+		return errors.New("input type is not a struct")
 	}
 	for i := 0; i < t.NumField(); i++ {
 		sf := t.Field(i)
@@ -337,10 +342,12 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 			// the topmost parent, skip it to avoid an infinite
 			// recursive loop.
 			if sft == parent {
-				g.errorf(
-					"skipped recursive embeding of type %s for parameter %s",
-					g.typeName(parent), sf.Name,
-				)
+				g.error(&FieldError{
+					Message:  "recursive embedding",
+					Name:     sf.Name,
+					TypeName: g.typeName(parent),
+					Type:     parent,
+				})
 			} else if err := g.setOperationParams(op, sft, parent, allowBody); err != nil {
 				return err
 			}
@@ -384,10 +391,13 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 		// same location already exists.
 		for _, p := range op.Parameters {
 			if p != nil && (p.Name == param.Name) && (p.In == param.In) {
-				g.errorf(
-					"openapi/gen: duplicate parameter found in type %s: name=%s, location=%s",
-					g.typeName(t), param.Name, param.In,
-				)
+				g.error(&FieldError{
+					Message:           "duplicate parameter",
+					Name:              param.Name,
+					TypeName:          g.typeName(t),
+					Type:              t,
+					ParameterLocation: param.In,
+				})
 				return nil
 			}
 		}
@@ -438,10 +448,13 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 
 		// Check if a field with the same name already exists.
 		if _, ok := schema.Properties[fname]; ok {
-			g.errorf(
-				"openapi/gen: duplicate request body parameter %s found in type %s",
-				fname, g.typeName(t),
-			)
+			g.error(&FieldError{
+				Message:           "duplicate request body parameter",
+				Name:              fname,
+				TypeName:          g.typeName(t),
+				Type:              t,
+				ParameterLocation: "body",
+			})
 			return nil
 		}
 
@@ -453,7 +466,10 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 			schema.Required = append(schema.Required, fname)
 			sort.Strings(schema.Required)
 		}
-		schema.Properties[fname] = g.newSchemaFromStructField(sf, required, fname, g.typeName(t))
+		sfs := g.newSchemaFromStructField(sf, required, fname, t)
+		if schema != nil {
+			schema.Properties[fname] = sfs
+		}
 	}
 	return nil
 }
@@ -483,18 +499,16 @@ func (g *Generator) newParameterFromField(idx int, t reflect.Type) (*Parameter, 
 	if location == g.config.PathLocationTag {
 		required = true
 	}
-	deprecated, err := strconv.ParseBool(field.Tag.Get(deprecatedTag))
-	if err == nil {
-		// Consider invalid values as false.
-		deprecated = false
-	}
+	// Consider invalid values as false.
+	deprecated, _ := strconv.ParseBool(field.Tag.Get(deprecatedTag))
+
 	p := &Parameter{
 		Name:        name,
 		In:          location,
 		Description: field.Tag.Get(descriptionTag),
 		Required:    required,
 		Deprecated:  deprecated,
-		Schema:      g.newSchemaFromStructField(field, required, name, g.typeName(t)),
+		Schema:      g.newSchemaFromStructField(field, required, name, t),
 	}
 	if field.Type.Kind() == reflect.Bool && location == g.config.QueryLocationTag {
 		p.AllowEmptyValue = true
@@ -532,14 +546,19 @@ func (g *Generator) paramLocation(f reflect.StructField, in reflect.Type) (strin
 		return "", nil
 	}
 	if c > 1 {
-		return "", fmt.Errorf("field %s of %s has conflicting parameter location", f.Name, g.typeName(in))
+		return "", &FieldError{
+			Message:  "conflicting parameter location",
+			Name:     f.Name,
+			TypeName: g.typeName(in),
+			Type:     in,
+		}
 	}
 	return parameterLocations[p], nil
 }
 
 // newSchemaFromStructField returns a new Schema builded
 // from the field's type and its tags.
-func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bool, fname, pname string) *SchemaOrRef {
+func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bool, fname string, parent reflect.Type) *SchemaOrRef {
 	sor := g.newSchemaFromType(sf.Type)
 	if sor == nil {
 		return nil
@@ -557,13 +576,22 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 	// https://swagger.io/docs/specification/describing-parameters/
 	if d := sf.Tag.Get(g.config.DefaultTag); d != "" {
 		if required {
-			g.errorf("openapi/gen: field %s of type %s cannot be required and have a default value", fname, pname)
+			g.error(&FieldError{
+				Message:  "field cannot be required and have a default value",
+				Name:     fname,
+				Type:     sf.Type,
+				TypeName: g.typeName(sf.Type),
+				Parent:   parent,
+			})
 		} else {
 			if v, err := stringToType(d, sf.Type); err != nil {
-				g.errorf(
-					"openapi/gen: default value %s of field %s in type %s cannot be converted to field's type: %s",
-					d, fname, pname, err,
-				)
+				g.error(&FieldError{
+					Message:  fmt.Sprintf("default value %s cannot be converted to field type: %s", d, err),
+					Name:     fname,
+					Type:     sf.Type,
+					TypeName: g.typeName(sf.Type),
+					Parent:   parent,
+				})
 			} else {
 				schema.Default = v
 			}
@@ -575,10 +603,13 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 		values := strings.Split(es, ",")
 		for _, val := range values {
 			if v, err := stringToType(val, sf.Type); err != nil {
-				g.errorf(
-					"openapi/gen: enum value %s of field %s in type %s cannot be converted to field's type: %s",
-					val, fname, pname, err,
-				)
+				g.error(&FieldError{
+					Message:  fmt.Sprintf("enum value %s cannot be converted to field type: %s", val, err),
+					Name:     fname,
+					Type:     sf.Type,
+					TypeName: g.typeName(sf.Type),
+					Parent:   parent,
+				})
 			} else {
 				schema.Enum = append(schema.Enum, v)
 			}
@@ -589,12 +620,8 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 		schema.Description = desc
 	}
 	// Deprecated.
-	deprecated, err := strconv.ParseBool(sf.Tag.Get(deprecatedTag))
-	if err == nil {
-		// Consider invalid values as false.
-		deprecated = false
-	}
-	schema.Deprecated = deprecated
+	// Consider invalid values as false.
+	schema.Deprecated, _ = strconv.ParseBool(sf.Tag.Get(deprecatedTag))
 
 	// Update schema fields related to the JSON Validation
 	// spec based on the content of the validator tag.
@@ -624,7 +651,10 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 	}
 	dt := DataTypeFromGo(t)
 	if dt == TypeUnsupported {
-		g.errorf("openapi/gen: encountered unsupported type %s", t.Kind().String())
+		g.error(&TypeError{
+			Message: "unsupported type",
+			Type:    t,
+		})
 		return nil
 	}
 	if dt == TypeComplex {
@@ -633,9 +663,6 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 			return g.buildSchemaRecursive(t)
 		case reflect.Struct:
 			return g.newSchemaFromStruct(t)
-		default:
-			g.errorf("openapi/gen: encountered unknown complex type %s", t.Kind().String())
-			return nil
 		}
 	}
 	schema := &Schema{
@@ -665,8 +692,11 @@ func (g *Generator) buildSchemaRecursive(t reflect.Type) *SchemaOrRef {
 		// JSON Schema allow only strings as
 		// object key.
 		if t.Key().Kind() != reflect.String {
-			g.errorf("openapi/gen: encountered type Map with keys of unsupported type %s", t.Key().Kind().String())
-			return &SchemaOrRef{Schema: schema}
+			g.error(&TypeError{
+				Message: "encountered type Map with keys of unsupported type",
+				Type:    t,
+			})
+			return nil
 		}
 		schema.AdditionalProperties = g.buildSchemaRecursive(t.Elem())
 	case reflect.Slice, reflect.Array:
@@ -754,7 +784,13 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 			// the topmost parent, skip it to avoid an infinite
 			// recursive loop.
 			if ft == parent {
-				g.errorf("openapi/gen: skipped recursive embeding of type %s", g.typeName(parent))
+				g.error(&FieldError{
+					Message:  "recursive embedding",
+					Name:     f.Name,
+					TypeName: g.typeName(parent),
+					Type:     parent,
+					Parent:   parent,
+				})
 			} else {
 				schema = g.flattenStructSchema(ft, parent, schema)
 			}
@@ -773,7 +809,10 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 			schema.Required = append(schema.Required, fname)
 			sort.Strings(schema.Required)
 		}
-		schema.Properties[fname] = g.newSchemaFromStructField(f, required, fname, g.typeName(t))
+		sfs := g.newSchemaFromStructField(f, required, fname, t)
+		if sfs != nil {
+			schema.Properties[fname] = sfs
+		}
 	}
 	return schema
 }
@@ -826,19 +865,9 @@ func (g *Generator) resolveSchema(s *SchemaOrRef) *Schema {
 // resolveParameter returns either the inlined parameter
 // in p or the one referenced in the API components.
 func (g *Generator) resolveParameter(p *ParameterOrRef) *Parameter {
+	// Parameters are always automatically inlined in the spec.
 	if p.Parameter != nil && p.Reference == nil {
 		return p.Parameter
-	}
-	if p.Reference != nil {
-		parts := strings.Split(p.Reference.Ref, "/")
-		if len(parts) == 4 {
-			if parts[0] == "#" && // relative ref
-				parts[1] == "components" &&
-				parts[2] == "parameters" &&
-				parts[3] != "" {
-				return g.api.Components.Parameters[parts[3]].Parameter
-			}
-		}
 	}
 	return nil
 }
@@ -946,8 +975,7 @@ func (g *Generator) updateSchemaValidation(schema *Schema, sf reflect.StructFiel
 	return schema
 }
 
-func (g *Generator) errorf(format string, a ...interface{}) {
-	err := fmt.Errorf(format, a...)
+func (g *Generator) error(err error) {
 	g.errors = append(g.errors, err)
 }
 
@@ -959,9 +987,10 @@ func fieldNameFromTag(sf reflect.StructField, tagName string) string {
 		return sf.Name
 	}
 	parts := strings.Split(strings.TrimSpace(v), ",")
-	if len(parts) == 0 {
-		return sf.Name
-	}
+
+	// Split return a one item slice if
+	// the input string is empty, thus we
+	// don't check the length.
 	name := parts[0]
 	if name == "" {
 		return sf.Name

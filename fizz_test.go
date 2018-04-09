@@ -291,6 +291,19 @@ func TestInvalidContentTypeOpenAPIHandler(t *testing.T) {
 	})
 }
 
+// TestErrorGen tests that the generator panics if
+// if fails to add an operation to the specification.
+func TestErrorGen(t *testing.T) {
+	type In struct {
+		A string `path:"a" query:"b"`
+	}
+	fizz := New()
+
+	assert.Panics(t, func() {
+		fizz.GET("/a", nil, tonic.Handler(func(c *gin.Context, param *In) error { return nil }, 200))
+	})
+}
+
 func TestJoinPaths(t *testing.T) {
 	jp := joinPaths
 
@@ -300,10 +313,10 @@ func TestJoinPaths(t *testing.T) {
 	assert.Equal(t, "/a/", jp("/a/", ""))
 	assert.Equal(t, "/a/", jp("/a/", "/"))
 	assert.Equal(t, "/a/", jp("/a", "/"))
-	assert.Equal(t, "/a/hola", jp("/a", "/hola"))
-	assert.Equal(t, "/a/hola", jp("/a/", "/hola"))
-	assert.Equal(t, "/a/hola/", jp("/a/", "/hola/"))
-	assert.Equal(t, "/a/hola/", jp("/a/", "/hola//"))
+	assert.Equal(t, "/a/b", jp("/a", "/b"))
+	assert.Equal(t, "/a/b", jp("/a/", "/b"))
+	assert.Equal(t, "/a/b/", jp("/a/", "/b/"))
+	assert.Equal(t, "/a/b/", jp("/a/", "/b//"))
 }
 
 func TestLastChar(t *testing.T) {

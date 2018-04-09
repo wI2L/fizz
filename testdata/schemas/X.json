@@ -10,7 +10,8 @@
             "nullable": true
         },
         "C": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true
         },
         "D": {
             "type": "array",
