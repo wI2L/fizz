@@ -15,7 +15,7 @@ type OpenAPI struct {
 // ascpects of the specification.
 type Components struct {
 	Schemas    map[string]*SchemaOrRef    `json:"schemas,omitempty" yaml:"schemas,omitempty"`
-	Responses  map[string]*ReponseOrRef   `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Responses  map[string]*ResponseOrRef  `json:"responses,omitempty" yaml:"responses,omitempty"`
 	Parameters map[string]*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Examples   map[string]*ExampleOrRef   `json:"examples,omitempty" yaml:"examples,omitempty"`
 	Headers    map[string]*HeaderOrRef    `json:"headers,omitempty" yaml:"headers,omitempty"`
@@ -193,17 +193,17 @@ type Operation struct {
 // Responses represents a container for the expected responses
 // of an opration. It maps a HTTP response code to the expected
 // response.
-type Responses map[string]*ReponseOrRef
+type Responses map[string]*ResponseOrRef
 
-// ReponseOrRef represents a Response that can be inlined
+// ResponseOrRef represents a Response that can be inlined
 // or referenced in the API description.
-type ReponseOrRef struct {
+type ResponseOrRef struct {
 	*Response
 	*Reference
 }
 
-// MarshalYAML implements yaml.Marshaler for ReponseOrRef.
-func (ror *ReponseOrRef) MarshalYAML() (interface{}, error) {
+// MarshalYAML implements yaml.Marshaler for ResponseOrRef.
+func (ror *ResponseOrRef) MarshalYAML() (interface{}, error) {
 	if ror.Response != nil {
 		return ror.Response, nil
 	}

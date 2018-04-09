@@ -25,20 +25,22 @@ var rt = reflect.TypeOf
 
 type (
 	X struct {
+		*X // ignored, recursive embedding
 		*Y
 		A string `validate:"required"`
 		B *int
-		C bool
+		C bool `deprecated:"true"`
 		D []*Y
 		E [3]*X
 		F *X
 		G *Y
+		H map[int]*Y // ignored, unsupported keys type
 	}
 	Y struct {
 		H float32   `validate:"required"`
 		I time.Time `format:"date"`
-		J *uint8
-		K *Z `validate:"required"`
+		J *uint8    `deprecated:"oui"` // invalid value, interpreted as false
+		K *Z        `validate:"required"`
 		N struct {
 			Na, Nb string
 			Nc     time.Duration
@@ -70,13 +72,17 @@ func TestStructFieldName(t *testing.T) {
 func TestAddTag(t *testing.T) {
 	g := gen(t)
 
-	g.AddTag("", "Test routes")
-	assert.Len(t, g.API().Tags, 0)
+	// Append nil tag to ensure sort works
+	// works even with non-addressable values.
+	g.api.Tags = append(g.api.Tags, nil)
 
-	g.AddTag("Test", "Test routes")
+	g.AddTag("", "Test routes")
 	assert.Len(t, g.API().Tags, 1)
 
-	tag := g.API().Tags[0]
+	g.AddTag("Test", "Test routes")
+	assert.Len(t, g.API().Tags, 2)
+
+	tag := g.API().Tags[1]
 	assert.NotNil(t, tag)
 	assert.Equal(t, tag.Name, "Test")
 	assert.Equal(t, tag.Description, "Test routes")
@@ -87,8 +93,8 @@ func TestAddTag(t *testing.T) {
 
 	// Add other tag, check sort order.
 	g.AddTag("A", "")
-	assert.Len(t, g.API().Tags, 2)
-	tag = g.API().Tags[0]
+	assert.Len(t, g.API().Tags, 3)
+	tag = g.API().Tags[1]
 	assert.Equal(t, "A", tag.Name)
 }
 
@@ -124,6 +130,21 @@ func TestSchemaFromUnsupportedType(t *testing.T) {
 	schema = g.newSchemaFromType(rt(func() {}))
 	assert.Nil(t, schema)
 	assert.Len(t, g.Errors(), 1)
+	assert.Implements(t, (*error)(nil), g.Errors()[0])
+	assert.NotEmpty(t, g.Errors()[0])
+}
+
+// TestSchemaFromMapWithUnsupportedKeys tests that a
+// schema cannot be created given a map type with
+// unsupported key's type.
+func TestSchemaFromMapWithUnsupportedKeys(t *testing.T) {
+	g := gen(t)
+
+	schema := g.newSchemaFromType(rt(map[int]string{}))
+	assert.Nil(t, schema)
+	assert.Len(t, g.Errors(), 1)
+	assert.Implements(t, (*error)(nil), g.Errors()[0])
+	assert.NotEmpty(t, g.Errors()[0].Error())
 }
 
 // TestSchemaFromComplex tests that a schema
@@ -183,6 +204,52 @@ func TestSchemaFromComplex(t *testing.T) {
 	}
 }
 
+// TestNewSchemaFromStructErrors tests the errors
+// case of generation of a schema from a struct.
+func TestNewSchemaFromStructErrors(t *testing.T) {
+	g := gen(t)
+
+	// Invalid input.
+	sor := g.newSchemaFromStruct(reflect.TypeOf(new(string)))
+	assert.Nil(t, sor)
+}
+
+// TestNewSchemaFromStructFieldErrors tests the errors
+// case of generation of a schema from a struct field.
+func TestNewSchemaFromStructFieldErrors(t *testing.T) {
+	g := gen(t)
+
+	type T struct {
+		A string `validate:"required" default:"foobar"`
+		B int    `default:"foobaz"`
+		C int    `enum:"a,1,c"`
+	}
+	typ := reflect.TypeOf(T{})
+
+	// Field A is required and has a default value.
+	sor := g.newSchemaFromStructField(typ.Field(0), true, "A", typ)
+	assert.NotNil(t, sor)
+	assert.Len(t, g.Errors(), 1)
+	assert.Implements(t, (*error)(nil), g.Errors()[0])
+	assert.NotEmpty(t, g.Errors()[0].Error())
+
+	// Field B has default value that cannot be converted to type's type.
+	sor = g.newSchemaFromStructField(typ.Field(1), false, "B", typ)
+	assert.NotNil(t, sor)
+	assert.Len(t, g.Errors(), 2)
+	assert.Implements(t, (*error)(nil), g.Errors()[1])
+	assert.NotEmpty(t, g.Errors()[1].Error())
+
+	// Field C has enum values that cannot be converted to type's type.
+	sor = g.newSchemaFromStructField(typ.Field(2), true, "C", typ)
+	assert.NotNil(t, sor)
+	// it generates two errors, one per value
+	// that cannot be converted, here "a" and "b".
+	assert.Len(t, g.Errors(), 4)
+	assert.NotEmpty(t, g.Errors()[2].Error())
+	assert.NotEmpty(t, g.Errors()[3].Error())
+}
+
 func diffJSON(a, b []byte) (bool, error) {
 	var j, j2 interface{}
 	if err := json.Unmarshal(a, &j); err != nil {
@@ -208,9 +275,12 @@ func TestAddOperation(t *testing.T) {
 		*In // ignored
 		*InEmbed
 
-		A int       `path:"a" description:"This is A"`
+		A int       `path:"a" description:"This is A" deprecated:"oui"`
 		B time.Time `query:"b" validate:"required" description:"This is B"`
 		C string    `header:"X-Test-C" description:"This is C" default:"test"`
+		d int       // ignored, unexported
+		E int       `path:"a"` // ignored, duplicate of A
+		F *string   `json:"f"` // ignored, duplicate of F in InEmbed
 	}
 	type CustomError struct{}
 
@@ -278,6 +348,15 @@ func TestAddOperation(t *testing.T) {
 	if !m {
 		t.Error("expected json outputs to be equal")
 	}
+
+	// Try to add the operation again with the same
+	// identifier. Expected to fail.
+	err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
+	assert.NotNil(t, err)
+
+	// Add an operation with a bad input type.
+	err = g.AddOperation("/", "GET", "", reflect.TypeOf(new(string)), nil, nil)
+	assert.NotNil(t, err)
 }
 
 // TestTypeName tests that the name of a type
@@ -351,6 +430,57 @@ func TestSetOperationByMethod(t *testing.T) {
 		assert.Equal(t, op, *ptr)
 		assert.Equal(t, desc, (*ptr).Description)
 	}
+}
+
+// TestSetOperationResponseError tests the various error
+// cases that can occur while adding a response to an op.
+func TestSetOperationResponseError(t *testing.T) {
+	g := gen(t)
+	op := &Operation{
+		Responses: make(Responses),
+	}
+	err := g.setOperationResponse(op, reflect.TypeOf(new(string)), "200", "application/json", "", nil)
+	assert.Nil(t, err)
+
+	// Add another response with same code.
+	err = g.setOperationResponse(op, reflect.TypeOf(new(int)), "200", "application/xml", "", nil)
+	assert.NotNil(t, err)
+
+	// Add invalid response code that cannot
+	// be converted to an integer.
+	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "two-hundred", "", "", nil)
+	assert.NotNil(t, err)
+}
+
+// TestSetOperationParamsError tests the various error
+// cases that can occur while adding parameters to an op.
+func TestSetOperationParamsError(t *testing.T) {
+	g := gen(t)
+	op := &Operation{}
+
+	// Use invalid input type for parameters.
+	typ := reflect.TypeOf([]string{})
+	err := g.setOperationParams(op, typ, typ, false)
+	assert.NotNil(t, err)
+}
+
+// TestParamLocationConflict tests that using conflicting
+// locations in the tag of a parameter throws an error.
+func TestParamLocationConflict(t *testing.T) {
+	type T struct {
+		A string `path:"a" query:"b"`
+	}
+	g := gen(t)
+
+	_, err := g.paramLocation(reflect.TypeOf(T{}).Field(0), reflect.TypeOf(T{}))
+	assert.NotNil(t, err)
+}
+
+// TestNewGenWithoutConfig tests that creating a
+// new generator without config fails.
+func TestNewGenWithoutConfig(t *testing.T) {
+	_, err := NewGenerator(nil)
+	assert.NotNil(t, err)
 }
 
 func gen(t *testing.T) *Generator {

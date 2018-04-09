@@ -30,6 +30,30 @@
         },
         "E": {
             "type": "string"
+        },
+        "F": {
+            "type": "string",
+            "maxLength": 7
+        },
+        "G": {
+            "type": "string",
+            "minLength": 7
+        },
+        "H": {
+            "type": "integer",
+            "format": "int32"
+        },
+        "I": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "J": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
         }
     }
 }
