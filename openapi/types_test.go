@@ -5,16 +5,18 @@ import (
 	"testing"
 	"time"
 	"unsafe"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// TestFormatTypes tests that an OpenAPI type
-// and format can be retrieved from a DataType.
-func TestFormatTypes(t *testing.T) {
+// TestInternalDataType tests that the internal
+// data types have correct types and formats.
+func TestInternalDataType(t *testing.T) {
 	type formatType struct {
 		Type   string
 		Format string
 	}
-	tests := map[DataType]formatType{
+	tests := map[InternalDataType]formatType{
 		TypeFloat:       {"number", "float"},
 		TypeDouble:      {"number", "double"},
 		TypeInteger:     {"integer", "int32"},
@@ -41,8 +43,8 @@ func TestFormatTypes(t *testing.T) {
 	}
 }
 
-// TestPrimitiveGoTypeToDataType tests that a Go primitive
-// type can be converted to a DataType.
+// TestPrimitiveGoTypeToDataType tests that a Go
+// primitive type can be converted to a DataType..
 func TestPrimitiveGoTypeToDataType(t *testing.T) {
 	tests := map[interface{}]DataType{
 		int(0):       TypeInteger,
@@ -72,17 +74,17 @@ func TestPrimitiveGoTypeToDataType(t *testing.T) {
 	}
 	for i, dt := range tests {
 		tof := reflect.TypeOf(i)
-		dtt := DataTypeFromGo(tof)
+		dtt := DataTypeFromType(tof)
 		if dtt != dt {
 			t.Errorf("expected data type %s for Go type %s, got %s", dt, tof.String(), dtt)
 		}
 	}
 }
 
-// TestComplexGoTypeToDataType tests that a complex Go
-// type can be converted to a DataType.
+// TestComplexGoTypeToInternalDataType tests that a complex
+// Go type can be converted to a InternalDataType.
 func TestComplexGoTypeToDataType(t *testing.T) {
-	tests := map[reflect.Type]DataType{
+	tests := map[reflect.Type]InternalDataType{
 		rt([]byte{}):                 TypeByte,
 		rt(time.Now()):               TypeDateTime,
 		rt(5 * time.Second):          TypeDuration,
@@ -100,17 +102,17 @@ func TestComplexGoTypeToDataType(t *testing.T) {
 		rt(complex(2.0, float64(0))): TypeUnsupported,
 	}
 	for tof, dt := range tests {
-		dtt := DataTypeFromGo(tof)
+		dtt := DataTypeFromType(tof)
 		if dtt != dt {
 			t.Errorf("expected data type %s for Go type %s, got %s", dt, tof.String(), dtt)
 		}
 	}
 }
 
-// TestDataTypeStringer tests that a DataType can
-// return a string representation of itself.
-func TestDataTypeStringer(t *testing.T) {
-	for _, dt := range []DataType{
+// TestInternalDataTypeStringer tests that the internal
+// data types implements the Stringer interface.
+func TestInternalDataTypeStringer(t *testing.T) {
+	for _, dt := range []InternalDataType{
 		TypeFloat,
 		TypeDouble,
 		TypeInteger,
@@ -132,9 +134,31 @@ func TestDataTypeStringer(t *testing.T) {
 		}
 	}
 	// Invalid DataType constant.
-	udt := DataType(255).String()
+	udt := InternalDataType(255).String()
 	if udt != "" {
 		t.Errorf("expected invalid data type to have no string representation, got %s", udt)
+	}
+}
+
+type UUIDv4 struct{}
+
+func (*UUIDv4) Format() string { return "uuid" }
+func (*UUIDv4) Type() string   { return "string" }
+
+// TestCustomDataType tests that a custom type
+// that implements the DataType interface can be
+// used to get a type and format.
+func TestCustomDataType(t *testing.T) {
+	uuid := &UUIDv4{}
+
+	dt := DataTypeFromType(reflect.TypeOf(uuid))
+	assert.NotNil(t, dt)
+
+	if v, ok := dt.(DataType); ok {
+		assert.Equal(t, "uuid", v.Format())
+		assert.Equal(t, "string", v.Type())
+	} else {
+		t.Error("expected type to implements DataType interface")
 	}
 }
 

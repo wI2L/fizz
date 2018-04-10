@@ -11,21 +11,30 @@ var (
 	tofTime      = reflect.TypeOf(time.Time{})
 	tofDuration  = reflect.TypeOf(time.Duration(0))
 	tofByteSlice = reflect.TypeOf([]byte{})
-	tofTypeNamer = reflect.TypeOf((*TypeNamer)(nil)).Elem()
+	tofDataType  = reflect.TypeOf((*DataType)(nil)).Elem()
 )
 
-// TypeNamer is the interface implemented
-// by the types that can name themselves.
-type TypeNamer interface {
-	Type() string
+// Typer is the interface implemented
+// by the types that can describe themselves.
+type Typer interface {
+	TypeName() string
 }
 
-// DataType represents a primitive type.
-type DataType int
+// DataType is the interface implemented by types
+// that can describe their OAS3 data type and format.
+type DataType interface {
+	Type() string
+	Format() string
+}
+
+// InternalDataType represents an internal type.
+type InternalDataType int
+
+var _ DataType = (*InternalDataType)(nil)
 
 // Type constants.
 const (
-	TypeInteger DataType = iota
+	TypeInteger InternalDataType = iota
 	TypeLong
 	TypeFloat
 	TypeDouble
@@ -46,32 +55,39 @@ const (
 )
 
 // String implements fmt.Stringer for DataType.
-func (dt DataType) String() string {
-	if 0 <= dt && dt < DataType(len(datatypes)) {
+func (dt InternalDataType) String() string {
+	if 0 <= dt && dt < InternalDataType(len(datatypes)) {
 		return datatypes[dt]
 	}
 	return ""
 }
 
 // Type returns the type corresponding to the DataType.
-func (dt DataType) Type() string {
-	if 0 <= dt && dt < DataType(len(types)) {
+func (dt InternalDataType) Type() string {
+	if 0 <= dt && dt < InternalDataType(len(types)) {
 		return types[dt]
 	}
 	return ""
 }
 
 // Format returns the format corresponding to the DataType.
-func (dt DataType) Format() string {
-	if 0 <= dt && dt < DataType(len(formats)) {
+func (dt InternalDataType) Format() string {
+	if 0 <= dt && dt < InternalDataType(len(formats)) {
 		return formats[dt]
 	}
 	return ""
 }
 
-// DataTypeFromGo returns an OpenAPI data type
-// from a Golang value.
-func DataTypeFromGo(t reflect.Type) DataType {
+// DataTypeFromType returns a DataType for the given type.
+func DataTypeFromType(t reflect.Type) DataType {
+	// If the type implement the DataType interface,
+	// return a new instance of the type.
+	if t.Implements(tofDataType) {
+		if t.Kind() == reflect.Ptr {
+			t = t.Elem()
+		}
+		return reflect.New(t).Interface().(DataType)
+	}
 	// Dereference any pointer.
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -115,7 +131,7 @@ func stringToType(val string, t reflect.Type) (interface{}, error) {
 	// Compare type to know Gokang types.
 	// IT MUST BE EXECUTED BEFORE swithing over
 	// primitives because a time.Duration is itself
-	// a int64.
+	// an int64.
 	if t.AssignableTo(tofTime) {
 		return time.Parse(time.RFC3339, val)
 	}

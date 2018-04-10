@@ -51,7 +51,7 @@ type (
 	Z map[string]*Y
 )
 
-func (*X) Type() string { return "XXX" }
+func (*X) TypeName() string { return "XXX" }
 
 // TestStructFieldName tests that the name of a
 // struct field can be correcttly extracted.
@@ -288,16 +288,16 @@ func TestAddOperation(t *testing.T) {
 
 	g := gen(t)
 	g.UseFullSchemaNames(false)
+	g.SetSortParams(true)
 
-	path := "/test/:A"
+	path := "/test/:a"
 
 	infos := &OperationInfo{
-		ID:                "CreateTest",
-		StatusCode:        201,
-		StatusDescription: "OK",
-		Summary:           "ABC",
-		Description:       "XYZ",
-		Deprecated:        true,
+		ID:          "CreateTest",
+		StatusCode:  201,
+		Summary:     "ABC",
+		Description: "XYZ",
+		Deprecated:  true,
 		Responses: []*OperationReponse{
 			&OperationReponse{
 				Code:        "400",
@@ -324,6 +324,18 @@ func TestAddOperation(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	// Add another operation with no input/output type.
+	// No parameters should be present, and a response
+	// matching the default status code used by tonic
+	// should be present with no content.
+	err = g.AddOperation(path, "PUT", "Test", nil, nil, &OperationInfo{
+		ID:          "UpdateTest",
+		StatusCode:  204,
+		Description: "Update a test.",
+	})
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Len(t, g.API().Paths, 1)
 
 	item, ok := g.API().Paths[rewritePath(path)]
@@ -331,13 +343,14 @@ func TestAddOperation(t *testing.T) {
 		t.Errorf("expected to found item for path %s", path)
 	}
 	assert.NotNil(t, item.POST)
+	assert.NotNil(t, item.PUT)
 
-	actual, err := json.Marshal(item.POST)
+	actual, err := json.Marshal(item)
 	if err != nil {
 		t.Error(err)
 	}
-	// see testdata/op.json.
-	expected, err := ioutil.ReadFile("../testdata/schemas/op.json")
+	// see testdata/schemas/path-item.json.
+	expected, err := ioutil.ReadFile("../testdata/schemas/path-item.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -348,7 +361,6 @@ func TestAddOperation(t *testing.T) {
 	if !m {
 		t.Error("expected json outputs to be equal")
 	}
-
 	// Try to add the operation again with the same
 	// identifier. Expected to fail.
 	err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
@@ -366,7 +378,7 @@ func TestTypeName(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	// TypeNamer interface.
+	// Typer interface.
 	name := g.typeName(rt(new(X)))
 	assert.Equal(t, "XXX", name)
 
@@ -460,7 +472,15 @@ func TestSetOperationParamsError(t *testing.T) {
 
 	// Use invalid input type for parameters.
 	typ := reflect.TypeOf([]string{})
-	err := g.setOperationParams(op, typ, typ, false)
+	err := g.setOperationParams(op, typ, typ, false, "/")
+	assert.NotNil(t, err)
+
+	// Semantic error for path.
+	type T struct {
+		B string `path:"B"`
+	}
+	typ = reflect.TypeOf(T{})
+	err = g.setOperationParams(op, typ, typ, false, "/{a}/{B}")
 	assert.NotNil(t, err)
 }
 

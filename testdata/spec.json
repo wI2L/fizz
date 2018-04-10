@@ -12,6 +12,17 @@
                 "description": "Test routes",
                 "operationId": "GetTest",
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique request ID",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
                     "429": {
                         "description": "Too Many Requests",
                         "headers": {
