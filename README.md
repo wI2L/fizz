@@ -82,17 +82,15 @@ fizz.Header(name, desc string, model interface{})
 
 To help you declare additional headers, predefined variables for Go primitives types that you can use as the third argument of the `fizz.Header` method are available.
 ```go
-var (
-	Integer  int32
-	Long     int64
-	Float    float32
-	Double   float64
-	String   string
-	Byte     []byte
-	Binary   []byte
-	Boolean  bool
-	DateTime time.Time
-)
+Integer  int32
+Long     int64
+Float    float32
+Double   float64
+String   string
+Byte     []byte
+Binary   []byte
+Boolean  bool
+DateTime time.Time
 ```
 
 ### Groups
@@ -139,6 +137,18 @@ To wrap a handler with *tonic*, use the `tonic.Handler` method. It takes a funct
 
 Output objects can be of any type, and will be marshalled to the desired media type.
 Note that the input object **MUST always be a pointer to a struct**, or the tonic wrapping will panic at runtime.
+
+If you use closures as handlers, please note that they will all have the same name, and the generator will return an error. To overcome this problem, you have to explicitely set the ID of an operation when you register the handler.
+
+```go
+func MyHandler() gin.HandlerFunc {
+   return tonic.Handler(func(c *gin.Context) error {}, 200)
+}
+
+fizz.GET("/foo", []fizz.OperationOption{
+   fizz.ID("MyOperationID")
+}, MyHandler())
+```
 
 ### Location tags
 
@@ -234,10 +244,33 @@ fizz.Generator().OverrideTypeName(reflect.TypeOf(T{}), "OverridedName")
 
 ##### Interface
 
-Implements the `openapi.TypeNamer` interface on your types.
+Implements the `openapi.Typer` interface on your types.
 ```go
-func (t *T) Type() string { return "OverridedName" }
+func (*T) TypeName() string { return "OverridedName" }
 ```
+**WARNING:** You **MUST** not rely on the method receiver to return the name, because the method will be called on a new instance created by the generator with the `reflect` package.
+
+#### Custom schemas
+
+The spec generator creates OpenAPI schemas for your types based on their [reflection kind](https://golang.org/pkg/reflect/#Kind).
+If you want to control the output schema of a type manually, you can implement the `DataType` interface for this type.
+
+For example, given a UUID version 4 type, declared as a struct, that should appear as a string with a custom format.
+```go
+type UUIDv4 struct { ... }
+
+func (*UUIDv4) Format() string { return "uuid" }
+func (*UUIDv4) Type() string { return "string" }
+```
+
+The schema of the type will look like the following instead of describing all the fields of the struct.
+```json
+{
+   "type": "string",
+   "format": "uuid"
+}
+```
+**WARNING:** You **MUST** not rely on the method receivers to return the type and format, because these methods will be called on a new instance created by the generator with the `reflect` package.
 
 #### Markdown
 

@@ -38,6 +38,7 @@ type Generator struct {
 	operationsIDS map[string]struct{}
 	errors        []error
 	fullNames     bool
+	sortParams    bool
 }
 
 // NewGenerator returns a new OpenAPI generator.
@@ -63,6 +64,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 		typeNames:     make(map[reflect.Type]string),
 		operationsIDS: make(map[string]struct{}),
 		fullNames:     true,
+		sortParams:    true,
 	}, nil
 }
 
@@ -109,10 +111,17 @@ func (g *Generator) UseFullSchemaNames(b bool) {
 	g.fullNames = b
 }
 
+// SetSortParams controls whether the generator should sort the
+// parameters of an operation by location and name in ascending
+// order.
+func (g *Generator) SetSortParams(b bool) {
+	g.sortParams = b
+}
+
 // OverrideTypeName registers a custom name for a
 // type that will override the default generation
 // and have precedence over types that implements
-// the TypeNamer interface.
+// the Typer interface.
 func (g *Generator) OverrideTypeName(t reflect.Type, name string) error {
 	if name == "" {
 		return errors.New("type name is empty")
@@ -207,16 +216,15 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 		if in.Kind() != reflect.Struct {
 			return errors.New("input type is not a struct")
 		}
-		if err := g.setOperationParams(op, in, in, allowBody); err != nil {
+		if err := g.setOperationParams(op, in, in, allowBody, path); err != nil {
 			return err
 		}
 	}
-	if out != nil {
-		// Generate the default response from the tonic
-		// handler return type.
-		if err := g.setOperationResponse(op, out, strconv.Itoa(info.StatusCode), tonic.MediaType(), info.StatusDescription, info.Headers); err != nil {
-			return err
-		}
+	// Generate the default response from the tonic
+	// handler return type. If the handler has no output
+	// type, the response won't have a schema.
+	if err := g.setOperationResponse(op, out, strconv.Itoa(info.StatusCode), tonic.MediaType(), info.StatusDescription, info.Headers); err != nil {
+		return err
 	}
 	// Generate additional responses from the operation
 	// informations.
@@ -318,12 +326,50 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 	return nil
 }
 
+var paramsInPathRe = regexp.MustCompile(`\{(.*?)\}`)
+
 // setOperationParams adds the fields of the struct type t
 // to the given operation.
-func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, allowBody bool) error {
+func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, allowBody bool, path string) error {
 	if t.Kind() != reflect.Struct {
 		return errors.New("input type is not a struct")
 	}
+	if err := g.buildParamsRecursive(op, t, parent, allowBody); err != nil {
+		return err
+	}
+	// Extract all the path parameter names.
+	matches := paramsInPathRe.FindAllStringSubmatch(path, -1)
+	var pathParams []string
+	for _, m := range matches {
+		pathParams = append(pathParams, m[1])
+	}
+	// Check that all declared path parameters are
+	// defined in the operation.
+	for _, pp := range pathParams {
+		has := false
+		for _, param := range op.Parameters {
+			if param.In == "path" && param.Name == pp {
+				has = true
+				break
+			}
+		}
+		if !has {
+			return fmt.Errorf("semantic error for path %s: declared path parameter %s needs to be defined at operation level", path, pp)
+		}
+	}
+	// Sort operations parameters by location and name
+	// in ascending order.
+	if g.sortParams {
+		paramsOrderedBy(
+			g.paramyByLocation,
+			g.paramyByName,
+		).Sort(op.Parameters)
+	}
+	return nil
+}
+
+// buildParamsRecursive
+func (g *Generator) buildParamsRecursive(op *Operation, t, parent reflect.Type, allowBody bool) error {
 	for i := 0; i < t.NumField(); i++ {
 		sf := t.Field(i)
 		if sf.PkgPath != "" {
@@ -348,7 +394,7 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 					TypeName: g.typeName(parent),
 					Type:     parent,
 				})
-			} else if err := g.setOperationParams(op, sft, parent, allowBody); err != nil {
+			} else if err := g.buildParamsRecursive(op, sft, parent, allowBody); err != nil {
 				return err
 			}
 		} else {
@@ -357,13 +403,6 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 			}
 		}
 	}
-	// Sort operations parameters by location and name
-	// in ascending order.
-	paramsOrderedBy(
-		g.paramyByLocation,
-		g.paramyByName,
-	).Sort(op.Parameters)
-
 	return nil
 }
 
@@ -387,8 +426,8 @@ func (g *Generator) addStructFieldToOperation(op *Operation, t reflect.Type, idx
 		return err
 	}
 	if param != nil {
-		// Check if a parameter with the same name for the
-		// same location already exists.
+		// Check if a parameter with same name/location
+		// already exists.
 		for _, p := range op.Parameters {
 			if p != nil && (p.Name == param.Name) && (p.In == param.In) {
 				g.error(&FieldError{
@@ -649,7 +688,7 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 		t = t.Elem()
 		nullable = true
 	}
-	dt := DataTypeFromGo(t)
+	dt := DataTypeFromType(t)
 	if dt == TypeUnsupported {
 		g.error(&TypeError{
 			Message: "unsupported type",
@@ -712,7 +751,7 @@ func (g *Generator) buildSchemaRecursive(t reflect.Type) *SchemaOrRef {
 		}
 		schema.Items = g.buildSchemaRecursive(t.Elem())
 	default:
-		dt := DataTypeFromGo(t)
+		dt := DataTypeFromType(t)
 		schema.Type, schema.Format = dt.Type(), dt.Format()
 	}
 	return &SchemaOrRef{Schema: schema}
@@ -892,11 +931,11 @@ func (g *Generator) typeName(t reflect.Type) string {
 	}
 	// Create a new instance of t's type and use a
 	// type assertion to check if it implements the
-	// TypeNamer interface.
+	// Typer interface.
 	v := reflect.New(t)
 	if v.CanInterface() {
-		if tn, ok := v.Interface().(TypeNamer); ok {
-			return tn.Type()
+		if tn, ok := v.Interface().(Typer); ok {
+			return tn.TypeName()
 		}
 	}
 	name := t.String() // package.name.

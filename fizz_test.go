@@ -171,7 +171,7 @@ func TestTonicHandler(t *testing.T) {
 }
 
 // TestSpecHandler tests that the OpenAPI handler
-// returnr the spec properly marshaled in JSON.
+// return the spec properly marshaled in JSON.
 func TestSpecHandler(t *testing.T) {
 	fizz := New()
 
@@ -267,9 +267,10 @@ func TestSpecHandler(t *testing.T) {
 	}
 }
 
-// TestMultipleTonicHandler tests that adding more than
-// one tonic-wrapped handler to a Fizz operation panics.
-func TestMultipleTonicHandler(t *testing.T) {
+// TestInvalidContentTypeOpenAPIHandler tests that the
+// OpenAPI handler will panic if the given content type
+// is invalid.
+func TestInvalidContentTypeOpenAPIHandler(t *testing.T) {
 	fizz := New()
 
 	assert.Panics(t, func() {
@@ -277,10 +278,9 @@ func TestMultipleTonicHandler(t *testing.T) {
 	})
 }
 
-// TestInvalidContentTypeOpenAPIHandler tests that the
-// OpenAPI handler will panic if the given content type
-// is invalid.
-func TestInvalidContentTypeOpenAPIHandler(t *testing.T) {
+// TestMultipleTonicHandler tests that adding more than
+// one tonic-wrapped handler to a Fizz operation panics.
+func TestMultipleTonicHandler(t *testing.T) {
 	fizz := New()
 
 	assert.Panics(t, func() {
