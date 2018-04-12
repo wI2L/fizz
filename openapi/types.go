@@ -14,6 +14,9 @@ var (
 	tofDataType  = reflect.TypeOf((*DataType)(nil)).Elem()
 )
 
+var _ DataType = (*InternalDataType)(nil)
+var _ DataType = (*OverridedDataType)(nil)
+
 // Typer is the interface implemented
 // by the types that can describe themselves.
 type Typer interface {
@@ -30,7 +33,18 @@ type DataType interface {
 // InternalDataType represents an internal type.
 type InternalDataType int
 
-var _ DataType = (*InternalDataType)(nil)
+// OverridedDataType represents a data type
+// which details override the default generation.
+type OverridedDataType struct {
+	format string
+	typ    string
+}
+
+// Format implements DataType for OverridedDataType.
+func (dt *OverridedDataType) Format() string { return dt.format }
+
+// Type implements DataType for OverridedDataType.
+func (dt *OverridedDataType) Type() string { return dt.typ }
 
 // Type constants.
 const (

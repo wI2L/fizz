@@ -24,6 +24,9 @@ var genConfig = &SpecGenConfig{
 var rt = reflect.TypeOf
 
 type (
+	W struct {
+		A, B string
+	}
 	X struct {
 		*X // ignored, recursive embedding
 		*Y
@@ -52,9 +55,11 @@ type (
 )
 
 func (*X) TypeName() string { return "XXX" }
+func (*W) Format() string   { return "wallet" }
+func (*W) Type() string     { return "string" }
 
 // TestStructFieldName tests that the name of a
-// struct field can be correcttly extracted.
+// struct field can be correctly extracted.
 func TestStructFieldName(t *testing.T) {
 	type T struct {
 		A  string `name:"A"`
@@ -494,6 +499,33 @@ func TestParamLocationConflict(t *testing.T) {
 
 	_, err := g.paramLocation(reflect.TypeOf(T{}).Field(0), reflect.TypeOf(T{}))
 	assert.NotNil(t, err)
+}
+
+// TestOverrideDataType tests that the data type
+// of a type can be ovirriden manually.
+func TestOverrideSchema(t *testing.T) {
+	g := gen(t)
+
+	// Type is mandatory.
+	err := g.OverrideDataType(rt(W{}), "", "wallet")
+	assert.NotNil(t, err)
+
+	// Success.
+	err = g.OverrideDataType(rt(&W{}), "string", "wallet")
+	assert.Nil(t, err)
+
+	// Data type already overidden.
+	err = g.OverrideDataType(rt(&W{}), "string", "wallet")
+	assert.NotNil(t, err)
+
+	sor := g.newSchemaFromType(rt(W{}))
+	assert.NotNil(t, sor)
+
+	schema := g.resolveSchema(sor)
+	assert.NotNil(t, schema)
+
+	assert.Equal(t, "string", schema.Type)
+	assert.Equal(t, "wallet", schema.Format)
 }
 
 // TestNewGenWithoutConfig tests that creating a
