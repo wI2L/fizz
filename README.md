@@ -272,6 +272,11 @@ The schema of the type will look like the following instead of describing all th
 ```
 **WARNING:** You **MUST** not rely on the method receivers to return the type and format, because these methods will be called on a new instance created by the generator with the `reflect` package.
 
+You can also override manually the type and format using `OverrideDataType()`. This has the highest precedence.
+```go
+fizz.Generator().OverrideDataType(reflect.TypeOf(&UUIDv4{}), "string", "uuid")
+```
+
 #### Markdown
 
 > Throughout the specification description fields are noted as supporting CommonMark markdown formatting. Where OpenAPI tooling renders rich text it MUST support, at a minimum, markdown syntax as described by CommonMark 0.27. Tooling MAY choose to ignore some CommonMark features to address security concerns.

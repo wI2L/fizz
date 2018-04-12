@@ -35,6 +35,7 @@ type Generator struct {
 	config        *SpecGenConfig
 	schemaTypes   map[reflect.Type]struct{}
 	typeNames     map[reflect.Type]string
+	dataTypes     map[reflect.Type]*OverridedDataType
 	operationsIDS map[string]struct{}
 	errors        []error
 	fullNames     bool
@@ -62,6 +63,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 		},
 		schemaTypes:   make(map[reflect.Type]struct{}),
 		typeNames:     make(map[reflect.Type]string),
+		dataTypes:     make(map[reflect.Type]*OverridedDataType),
 		operationsIDS: make(map[string]struct{}),
 		fullNames:     true,
 		sortParams:    true,
@@ -130,11 +132,38 @@ func (g *Generator) OverrideTypeName(t reflect.Type, name string) error {
 		t = t.Elem()
 	}
 	if _, ok := g.typeNames[t]; ok {
-		return errors.New("type name already overidded")
+		return errors.New("type name already overrided")
 	}
 	g.typeNames[t] = name
 
 	return nil
+}
+
+// OverrideDataType registers a custom schema type and
+// format for the given type that will overrided the
+// default generation.
+func (g *Generator) OverrideDataType(t reflect.Type, typ, format string) error {
+	if typ == "" {
+		return errors.New("type is mandatory")
+	}
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if _, ok := g.dataTypes[t]; ok {
+		return errors.New("data type already overrided")
+	}
+	g.dataTypes[t] = &OverridedDataType{
+		format: format,
+		typ:    typ,
+	}
+	return nil
+}
+
+func (g *Generator) datatype(t reflect.Type) DataType {
+	if dt, ok := g.dataTypes[t]; ok {
+		return dt
+	}
+	return DataTypeFromType(t)
 }
 
 // AddTag adds a new tag to the OpenAPI specification.
@@ -688,7 +717,7 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 		t = t.Elem()
 		nullable = true
 	}
-	dt := DataTypeFromType(t)
+	dt := g.datatype(t)
 	if dt == TypeUnsupported {
 		g.error(&TypeError{
 			Message: "unsupported type",
@@ -751,7 +780,7 @@ func (g *Generator) buildSchemaRecursive(t reflect.Type) *SchemaOrRef {
 		}
 		schema.Items = g.buildSchemaRecursive(t.Elem())
 	default:
-		dt := DataTypeFromType(t)
+		dt := g.datatype(t)
 		schema.Type, schema.Format = dt.Type(), dt.Format()
 	}
 	return &SchemaOrRef{Schema: schema}

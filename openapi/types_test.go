@@ -158,7 +158,7 @@ func TestCustomDataType(t *testing.T) {
 		assert.Equal(t, "uuid", v.Format())
 		assert.Equal(t, "string", v.Type())
 	} else {
-		t.Error("expected type to implements DataType interface")
+		t.Error("expected type to implements the DataType interface")
 	}
 }
 
