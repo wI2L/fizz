@@ -20,6 +20,7 @@ const (
 	formatTag      = "format"
 	deprecatedTag  = "deprecated"
 	descriptionTag = "description"
+	embedTag       = "embed"
 )
 
 // mediaTags maps media types to well-known
@@ -386,8 +387,8 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 			return fmt.Errorf("semantic error for path %s: declared path parameter %s needs to be defined at operation level", path, pp)
 		}
 	}
-	// Sort operations parameters by location and name
-	// in ascending order.
+	// Sort operations parameters by location,
+	// then name in ascending order.
 	if g.sortParams {
 		paramsOrderedBy(
 			g.paramyByLocation,
@@ -409,10 +410,11 @@ func (g *Generator) buildParamsRecursive(op *Operation, t, parent reflect.Type, 
 		if sft.Kind() == reflect.Ptr {
 			sft = sft.Elem()
 		}
-		// If the struct field is an embedded struct, we recursively
-		// use its fields as operations params. This allow developers
+		// If a field is an embedded struct or has a tag that
+		// force the embedding of its fields, we recursively
+		// them as operations params. This allow developers
 		// to reuse input models using type composition.
-		if sf.Anonymous && sft.Kind() == reflect.Struct {
+		if sft.Kind() == reflect.Struct && (sf.Anonymous || tagExists(sf.Tag, embedTag)) {
 			// If the type of the embedded field is the same as
 			// the topmost parent, skip it to avoid an infinite
 			// recursive loop.
@@ -433,6 +435,11 @@ func (g *Generator) buildParamsRecursive(op *Operation, t, parent reflect.Type, 
 		}
 	}
 	return nil
+}
+
+func tagExists(stag reflect.StructTag, tag string) bool {
+	_, ok := stag.Lookup(tag)
+	return ok
 }
 
 func (g *Generator) paramyByName(p1, p2 *ParameterOrRef) bool {
