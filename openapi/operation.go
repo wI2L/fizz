@@ -10,6 +10,7 @@ type OperationInfo struct {
 	Summary           string
 	Description       string
 	Deprecated        bool
+	InputModel        interface{}
 	Responses         []*OperationReponse
 }
 
