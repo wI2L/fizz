@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"reflect"
 	"strings"
 	"time"
 
@@ -188,11 +189,17 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 		}
 		oi.StatusCode = hfunc.GetDefaultStatusCode()
 
+		// Set an input type if provided.
+		it := hfunc.InputType()
+		if oi.InputModel != nil {
+			it = reflect.TypeOf(oi.InputModel)
+		}
+
 		// Consolidate path.
 		path = joinPaths(g.group.BasePath(), path)
 
 		// Add operation to the OpenAPI spec.
-		if err := g.gen.AddOperation(path, method, g.Name, hfunc.InputType(), hfunc.OutputType(), oi); err != nil {
+		if err := g.gen.AddOperation(path, method, g.Name, it, hfunc.OutputType(), oi); err != nil {
 			panic(fmt.Sprintf(
 				"error while generating OpenAPI spec on operation %s %s: %s",
 				method, path, err,
@@ -299,6 +306,13 @@ func Header(name, desc string, model interface{}) func(*openapi.OperationInfo) {
 			Description: desc,
 			Model:       model,
 		})
+	}
+}
+
+// InputModel overrides the binding model of the operation.
+func InputModel(model interface{}) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.InputModel = model
 	}
 }
 

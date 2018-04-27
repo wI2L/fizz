@@ -30,4 +30,26 @@ paths:
               schema:
                 type: string
       deprecated: true
+  /test/{a}/{b}:
+    get:
+      operationId: GetTest2
+      parameters:
+      - name: a
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: b
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: q
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
 components: {}

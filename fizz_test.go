@@ -14,10 +14,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/y0ssar1an/q"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	"github.com/wI2L/fizz/openapi"
 )
@@ -170,6 +170,12 @@ func TestTonicHandler(t *testing.T) {
 	assert.Equal(t, `{"x":"foo","y":1}`, string(body))
 }
 
+type testInputModel struct {
+	PathParam1 string `path:"a"`
+	PathParam2 int    `path:"b"`
+	QueryParam string `query:"q"`
+}
+
 // TestSpecHandler tests that the OpenAPI handler
 // return the spec properly marshaled in JSON.
 func TestSpecHandler(t *testing.T) {
@@ -202,6 +208,13 @@ func TestSpecHandler(t *testing.T) {
 			return nil
 		}, 200),
 	)
+
+	fizz.GET("/test/:a/:b", []OperationOption{
+		ID("GetTest2"),
+		InputModel(&testInputModel{}),
+	}, tonic.Handler(func(c *gin.Context) error {
+		return nil
+	}, 200))
 	infos := &openapi.Info{
 		Title:       "Test Server",
 		Description: `This is a test server.`,

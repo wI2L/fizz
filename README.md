@@ -76,7 +76,12 @@ fizz.Response(statusCode, desc string, model interface{}, headers []*ResponseHea
 // Model can be of any type, and may also be `nil`,
 // in which case the string type will be used as default.
 fizz.Header(name, desc string, model interface{})
+
+// Override the binding model of the operation.
+fizz.InputModel(model interface{})
 ```
+
+**NOTE:** `fizz.InputModel` allows to override the operation input regardless of how the handler implementation really binds the request. It is the developer responsibility to ensure that the parameters binding matches the OpenAPI specification.
 
 **NOTE:** The fist argument of the `fizz.Reponse` method which represents an HTTP status code is of type *string* because the spec accept the value `default`. See the [Responses Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject) documentation for more informations.
 
