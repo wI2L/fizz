@@ -3,6 +3,17 @@ info:
   title: Test Server
   description: This is a test server.
   version: 1.0.0
+servers:
+- url: https://foo.bar/{basePath}
+  description: Such Server, Very Wow
+  variables:
+    basePath:
+      enum:
+        - v1
+        - v2
+        - beta
+      default: v2
+      description: version of the API
 paths:
   /test/{a}:
     get:

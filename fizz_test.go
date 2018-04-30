@@ -207,6 +207,21 @@ func TestSpecHandler(t *testing.T) {
 		Description: `This is a test server.`,
 		Version:     "1.0.0",
 	}
+	servers := []*openapi.Server{
+		&openapi.Server{
+			URL:         "https://foo.bar/{basePath}",
+			Description: "Such Server, Very Wow",
+			Variables: map[string]*openapi.ServerVariable{
+				"basePath": &openapi.ServerVariable{
+					Default:     "v2",
+					Description: "version of the API",
+					Ennum:       []string{"v1", "v2", "beta"},
+				},
+			},
+		},
+	}
+	fizz.Generator().SetServers(servers)
+
 	fizz.GET("/openapi.json", nil, fizz.OpenAPI(infos, "")) // default is JSON
 	fizz.GET("/openapi.yaml", nil, fizz.OpenAPI(infos, "yaml"))
 
