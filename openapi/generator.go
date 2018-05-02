@@ -90,6 +90,12 @@ func (g *Generator) SetInfo(info *Info) {
 	g.api.Info = info
 }
 
+// SetServers sets the server list for the
+// current specification.
+func (g *Generator) SetServers(servers []*Server) {
+	g.api.Servers = servers
+}
+
 // API returns a copy of the internal OpenAPI object.
 func (g *Generator) API() *OpenAPI {
 	cpy := *g.api

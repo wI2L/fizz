@@ -535,6 +535,29 @@ func TestNewGenWithoutConfig(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+// TestSetServers tests that a custom servers description
+// can be added to the specification and is properly marshaled.
+func TestSetServers(t *testing.T) {
+	g := gen(t)
+
+	servers := []*Server{
+		&Server{URL: "https://dev.api.foo.bar/v1", Description: "Development server"},
+		&Server{URL: "https://prod.api.foo.bar/{basePath}", Description: "Production server", Variables: map[string]*ServerVariable{
+			"basePath": &ServerVariable{
+				Description: "Version of the API",
+				Ennum: []string{
+					"v1", "v2", "beta",
+				},
+				Default: "v2",
+			},
+		}},
+	}
+	g.SetServers(servers)
+
+	assert.NotNil(t, g.API().Servers)
+	assert.Equal(t, servers, g.API().Servers)
+}
+
 func gen(t *testing.T) *Generator {
 	g, err := NewGenerator(genConfig)
 	if err != nil {
