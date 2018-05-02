@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/satori/go.uuid"
 )
 
 var (
@@ -12,6 +14,9 @@ var (
 	tofDuration  = reflect.TypeOf(time.Duration(0))
 	tofByteSlice = reflect.TypeOf([]byte{})
 	tofDataType  = reflect.TypeOf((*DataType)(nil)).Elem()
+
+	// Imported.
+	tofSatoriUUID = reflect.TypeOf(uuid.UUID{})
 )
 
 var _ DataType = (*InternalDataType)(nil)
@@ -65,6 +70,9 @@ const (
 	// Go struct, for which a schema must be generated.
 	TypeComplex
 
+	// Imported data types.
+	TypeUUID
+
 	TypeUnsupported
 )
 
@@ -106,14 +114,18 @@ func DataTypeFromType(t reflect.Type) DataType {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
-	if t.AssignableTo(tofTime) {
+	// Switch over Golang types.
+	switch t {
+	case tofTime:
 		return TypeDateTime
-	}
-	if t.AssignableTo(tofDuration) {
+	case tofDuration:
 		return TypeDuration
-	}
-	if t.AssignableTo(tofByteSlice) {
+	case tofByteSlice:
 		return TypeByte
+	}
+	// Treat imported types.
+	if dt := isImportedType(t); dt != nil {
+		return dt
 	}
 	// Switch over primitive types.
 	switch t.Kind() {
@@ -138,6 +150,14 @@ func DataTypeFromType(t reflect.Type) DataType {
 		// reflect.Interface, reflect.Complex64, reflect.Complex128, ...
 		return TypeUnsupported
 	}
+}
+
+func isImportedType(t reflect.Type) DataType {
+	// github.com/satori/go.uuid
+	if t == tofSatoriUUID {
+		return TypeUUID
+	}
+	return nil
 }
 
 // stringToType converts val to t's type and return the new value.
@@ -187,6 +207,7 @@ var datatypes = [...]string{
 	TypePassword:    "Password",
 	TypeUnsupported: "Unsupported",
 	TypeComplex:     "Complex",
+	TypeUUID:        "UUID",
 }
 
 var types = [...]string{
@@ -203,6 +224,7 @@ var types = [...]string{
 	TypeDuration: "string",
 	TypePassword: "string",
 	TypeComplex:  "string",
+	TypeUUID:     "string",
 }
 
 var formats = [...]string{
@@ -219,4 +241,5 @@ var formats = [...]string{
 	TypeDuration: "duration",
 	TypePassword: "password",
 	TypeComplex:  "",
+	TypeUUID:     "uuid",
 }

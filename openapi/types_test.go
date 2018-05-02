@@ -6,6 +6,7 @@ import (
 	"time"
 	"unsafe"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -233,4 +234,14 @@ func TestStringToType(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected error to be non-nil for unsupported type")
 	}
+}
+
+// TypeDateTime tests that imported types
+// are properly handled.
+func TestImportedTypes(t *testing.T) {
+	// github.com/satori/go.uuid
+	uuid := uuid.Must(uuid.NewV4())
+	dt := DataTypeFromType(rt(uuid))
+	assert.Equal(t, "string", dt.Type())
+	assert.Equal(t, "uuid", dt.Format())
 }
