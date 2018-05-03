@@ -49,6 +49,13 @@
                 }
             },
             {
+                "name": "i",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
                 "name": "xd",
                 "in": "query",
                 "schema": {

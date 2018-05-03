@@ -403,39 +403,48 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 	return nil
 }
 
-// buildParamsRecursive
 func (g *Generator) buildParamsRecursive(op *Operation, t, parent reflect.Type, allowBody bool) error {
 	for i := 0; i < t.NumField(); i++ {
 		sf := t.Field(i)
-		if sf.PkgPath != "" {
-			// ignore unexported fields.
-			continue
-		}
 		sft := sf.Type
+
+		// Dereference pointer.
 		if sft.Kind() == reflect.Ptr {
 			sft = sft.Elem()
 		}
-		// If the struct field is an embedded struct, we recursively
-		// use its fields as operations params. This allow developers
-		// to reuse input models using type composition.
-		if sf.Anonymous && sft.Kind() == reflect.Struct {
-			// If the type of the embedded field is the same as
-			// the topmost parent, skip it to avoid an infinite
-			// recursive loop.
-			if sft == parent {
-				g.error(&FieldError{
-					Message:  "recursive embedding",
-					Name:     sf.Name,
-					TypeName: g.typeName(parent),
-					Type:     parent,
-				})
-			} else if err := g.buildParamsRecursive(op, sft, parent, allowBody); err != nil {
-				return err
+		isUnexported := sf.PkgPath != ""
+
+		if sf.Anonymous {
+			if isUnexported && sft.Kind() != reflect.Struct {
+				// Ignore embedded fields of unexported non-struct types.
+				continue
 			}
-		} else {
-			if err := g.addStructFieldToOperation(op, t, i, allowBody); err != nil {
-				return err
+			// Do not ignore embedded fields of unexported struct
+			// types since they may have exported fields, and recursively
+			// use its fields as operations params. This allow developers
+			// to reuse input models using type composition.
+			if sft.Kind() == reflect.Struct {
+				// If the type of the embedded struct is the same as
+				// the topmost parent, skip it to avoid an infinite
+				// recursive loop.
+				if sft == parent {
+					g.error(&FieldError{
+						Message:  "recursive embedding",
+						Name:     sf.Name,
+						TypeName: g.typeName(parent),
+						Type:     parent,
+					})
+				} else if err := g.buildParamsRecursive(op, sft, parent, allowBody); err != nil {
+					return err
+				}
 			}
+			continue
+		} else if isUnexported {
+			// Ignore unexported non-embedded fields.
+			continue
+		}
+		if err := g.addStructFieldToOperation(op, t, i, allowBody); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -843,31 +852,40 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) *Schema {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-
-		if f.PkgPath != "" {
-			// ignore unexported fields.
-			continue
-		}
 		ft := f.Type
+
 		// Dereference pointer.
 		if ft.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
-		if f.Anonymous && ft.Kind() == reflect.Struct {
-			// If the type of the embedded field is the same as
-			// the topmost parent, skip it to avoid an infinite
-			// recursive loop.
-			if ft == parent {
-				g.error(&FieldError{
-					Message:  "recursive embedding",
-					Name:     f.Name,
-					TypeName: g.typeName(parent),
-					Type:     parent,
-					Parent:   parent,
-				})
-			} else {
-				schema = g.flattenStructSchema(ft, parent, schema)
+		isUnexported := f.PkgPath != ""
+
+		if f.Anonymous {
+			if isUnexported && ft.Kind() != reflect.Struct {
+				// Ignore embedded fields of unexported non-struct types.
+				continue
 			}
+			// Do not ignore embedded fields of unexported struct
+			// types since they may have exported fields.
+			if ft.Kind() == reflect.Struct {
+				// However, if the type of the embedded field is the same
+				// as the topmost parent, skip it to avoid an infinite
+				// recursive loop.
+				if ft == parent {
+					g.error(&FieldError{
+						Message:  "recursive embedding",
+						Name:     f.Name,
+						TypeName: g.typeName(parent),
+						Type:     parent,
+						Parent:   parent,
+					})
+				} else {
+					schema = g.flattenStructSchema(ft, parent, schema)
+				}
+			}
+			continue
+		} else if isUnexported {
+			// Ignore unexported non-embedded fields.
 			continue
 		}
 		fname := fieldNameFromTag(f, mediaTags[tonic.MediaType()])

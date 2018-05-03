@@ -27,6 +27,10 @@ type (
 	W struct {
 		A, B string
 	}
+	u struct {
+		S int
+	}
+	q int
 	X struct {
 		*X // ignored, recursive embedding
 		*Y
@@ -38,6 +42,9 @@ type (
 		F *X
 		G *Y
 		H map[int]*Y // ignored, unsupported keys type
+		*u
+		uu *u // ignored, unexported field
+		q     // ignored, embedded field of non-struct type
 	}
 	Y struct {
 		H float32   `validate:"required"`
@@ -276,16 +283,23 @@ func TestAddOperation(t *testing.T) {
 		G []byte  `validate:"required"`
 		H uint16  `binding:"-"`
 	}
+	type inEmbedPrivate struct {
+		I string `query:"i"`
+	}
+	type h string
 	type In struct {
-		*In // ignored
+		*In // ignored, recusrive embedding
 		*InEmbed
+		*inEmbedPrivate
 
 		A int       `path:"a" description:"This is A" deprecated:"oui"`
 		B time.Time `query:"b" validate:"required" description:"This is B"`
 		C string    `header:"X-Test-C" description:"This is C" default:"test"`
-		d int       // ignored, unexported
+		d int       // ignored, unexported field
 		E int       `path:"a"` // ignored, duplicate of A
 		F *string   `json:"f"` // ignored, duplicate of F in InEmbed
+		G *inEmbedPrivate
+		h // ignored, embedded field of non-struct type
 	}
 	type CustomError struct{}
 
