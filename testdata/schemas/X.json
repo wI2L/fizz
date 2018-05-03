@@ -66,6 +66,10 @@
                     "format": "duration"
                 }
             }
+        },
+        "S": {
+            "type": "integer",
+            "format": "int32"
         }
     },
     "required": [
