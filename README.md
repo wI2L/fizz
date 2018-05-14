@@ -282,6 +282,17 @@ You can also override manually the type and format using `OverrideDataType()`. T
 fizz.Generator().OverrideDataType(reflect.TypeOf(&UUIDv4{}), "string", "uuid")
 ```
 
+##### Native and imported types support
+
+Fizz supports some native and imported types. A schema with a proper type and format will be generated automatically, removing the need for creating your own custom schema.
+
+* [time.Time](https://golang.org/pkg/time/#Time)
+* [time.Duration](https://golang.org/pkg/time/#Duration)
+* [net.URL](https://golang.org/pkg/net/url/#URL)
+* [net.IP](https://golang.org/pkg/net/#IP)  
+Note that, according to the doc, the inherent version of the address is a semantic property, and thus cannot be determined by Fizz. Therefore, the format returned is simply `ip`. If you want to specify the version, you can use the tags `format:"ipv4"` or `format:"ipv6"`.
+* [uuid.UUID](https://godoc.org/github.com/satori/go.uuid#UUID)
+
 #### Markdown
 
 > Throughout the specification description fields are noted as supporting CommonMark markdown formatting. Where OpenAPI tooling renders rich text it MUST support, at a minimum, markdown syntax as described by CommonMark 0.27. Tooling MAY choose to ignore some CommonMark features to address security concerns.
