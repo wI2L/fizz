@@ -1,6 +1,8 @@
 package openapi
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // setSchemaMax sets the given maximum to the appropriate
 // schema field based on the given type.

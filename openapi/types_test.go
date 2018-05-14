@@ -1,6 +1,8 @@
 package openapi
 
 import (
+	"net"
+	"net/url"
 	"reflect"
 	"testing"
 	"time"
@@ -28,6 +30,8 @@ func TestInternalDataType(t *testing.T) {
 		TypeDate:        {"string", "date"},
 		TypeDateTime:    {"string", "date-time"},
 		TypeDuration:    {"string", "duration"},
+		TypeIP:          {"string", "ip"},
+		TypeURL:         {"string", "url"},
 		TypePassword:    {"string", "password"},
 		TypeComplex:     {"string", ""},
 		TypeBoolean:     {"boolean", ""},
@@ -89,6 +93,8 @@ func TestComplexGoTypeToDataType(t *testing.T) {
 		rt([]byte{}):                 TypeByte,
 		rt(time.Now()):               TypeDateTime,
 		rt(5 * time.Second):          TypeDuration,
+		rt(url.URL{}):                TypeURL,
+		rt(net.IP{}):                 TypeIP,
 		rt(struct{}{}):               TypeComplex,
 		rt([]string{}):               TypeComplex,
 		rt([6]string{}):              TypeComplex,
@@ -124,6 +130,8 @@ func TestInternalDataTypeStringer(t *testing.T) {
 		TypeDate,
 		TypeDateTime,
 		TypeDuration,
+		TypeIP,
+		TypeURL,
 		TypePassword,
 		TypeComplex,
 		TypeBoolean,

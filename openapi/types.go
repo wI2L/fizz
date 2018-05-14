@@ -2,6 +2,8 @@ package openapi
 
 import (
 	"fmt"
+	"net"
+	"net/url"
 	"reflect"
 	"strconv"
 	"time"
@@ -10,10 +12,14 @@ import (
 )
 
 var (
+	tofDataType = reflect.TypeOf((*DataType)(nil)).Elem()
+
+	// Native.
 	tofTime      = reflect.TypeOf(time.Time{})
 	tofDuration  = reflect.TypeOf(time.Duration(0))
 	tofByteSlice = reflect.TypeOf([]byte{})
-	tofDataType  = reflect.TypeOf((*DataType)(nil)).Elem()
+	tofNetIP     = reflect.TypeOf(net.IP{})
+	tofNetURL    = reflect.TypeOf(url.URL{})
 
 	// Imported.
 	tofSatoriUUID = reflect.TypeOf(uuid.UUID{})
@@ -64,6 +70,8 @@ const (
 	TypeDate
 	TypeDateTime
 	TypeDuration
+	TypeIP
+	TypeURL
 	TypePassword
 
 	// TypeComplex represents non-primitive types like
@@ -122,6 +130,10 @@ func DataTypeFromType(t reflect.Type) DataType {
 		return TypeDuration
 	case tofByteSlice:
 		return TypeByte
+	case tofNetIP:
+		return TypeIP
+	case tofNetURL:
+		return TypeURL
 	}
 	// Treat imported types.
 	if dt := isImportedType(t); dt != nil {
@@ -162,7 +174,7 @@ func isImportedType(t reflect.Type) DataType {
 
 // stringToType converts val to t's type and return the new value.
 func stringToType(val string, t reflect.Type) (interface{}, error) {
-	// Compare type to know Gokang types.
+	// Compare type to know Golang types.
 	// IT MUST BE EXECUTED BEFORE swithing over
 	// primitives because a time.Duration is itself
 	// an int64.
@@ -204,6 +216,8 @@ var datatypes = [...]string{
 	TypeDate:        "Date",
 	TypeDateTime:    "DateTime",
 	TypeDuration:    "Duration",
+	TypeIP:          "IP Address",
+	TypeURL:         "URL (Uniform Resource Locator)",
 	TypePassword:    "Password",
 	TypeUnsupported: "Unsupported",
 	TypeComplex:     "Complex",
@@ -222,6 +236,8 @@ var types = [...]string{
 	TypeDate:     "string",
 	TypeDateTime: "string",
 	TypeDuration: "string",
+	TypeIP:       "string",
+	TypeURL:      "string",
 	TypePassword: "string",
 	TypeComplex:  "string",
 	TypeUUID:     "string",
@@ -239,6 +255,8 @@ var formats = [...]string{
 	TypeDate:     "date",
 	TypeDateTime: "date-time",
 	TypeDuration: "duration",
+	TypeIP:       "ip",
+	TypeURL:      "url",
 	TypePassword: "password",
 	TypeComplex:  "",
 	TypeUUID:     "uuid",
