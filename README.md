@@ -222,7 +222,7 @@ Based on the type of the field that carry the tag, the fields `maximum`, `minimu
 
 To serve the generated OpenAPI specification in either `JSON` or `YAML` format, use the handler returned by the `fizz.OpenAPI` method.
 
-To enrich the specification, you can provide additional informations. Head to the [OpenAPI 3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [_openapi/objects.go_](openapi/object.go#L25).
+To enrich the specification, you can provide additional informations. Head to the [OpenAPI 3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [_openapi/spec.go_](openapi/spec.go#L25).
 
 ```go
 infos := &openapi.Info{
