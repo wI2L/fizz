@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/loopfz/gadgeto/tonic"
-	uuid "github.com/satori/go.uuid"
 )
 
 const (
