@@ -324,7 +324,8 @@ func TestAddOperation(t *testing.T) {
 				Model:       CustomError{},
 			},
 			&OperationReponse{
-				Code: "500",
+				Code:        "5XX",
+				Description: "Server Errors",
 			},
 		},
 		Headers: []*ResponseHeader{
@@ -480,6 +481,10 @@ func TestSetOperationResponseError(t *testing.T) {
 	// Add invalid response code that cannot
 	// be converted to an integer.
 	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "two-hundred", "", "", nil)
+	assert.NotNil(t, err)
+
+	// Add out of range response code.
+	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "777", "", "", nil)
 	assert.NotNil(t, err)
 }
 

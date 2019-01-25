@@ -141,8 +141,8 @@
                     }
                 }
             },
-            "500": {
-                "description": "Internal Server Error"
+            "5XX": {
+                "description": "Server Errors"
             }
         },
         "deprecated": true
