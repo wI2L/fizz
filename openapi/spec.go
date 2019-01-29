@@ -99,6 +99,8 @@ type Parameter struct {
 	Deprecated      bool         `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	AllowEmptyValue bool         `json:"allowEmptyValue,omitempty" yaml:"allowEmptyValue,omitempty"`
 	Schema          *SchemaOrRef `json:"schema,omitempty" yaml:"schema,omitempty"`
+	Style           string       `json:"style,omitempty" yaml:"style,omitempty"`
+	Explode         bool         `json:"explode,omitempty" yaml:"explode,omitempty"`
 }
 
 // ParameterOrRef represents a Parameter that can be inlined

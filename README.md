@@ -182,10 +182,11 @@ type MyHandlerParams struct {
 You can use additional tags. Some will be interpreted by *tonic*, others will be exclusively used to enrich the *OpenAPI* specification.
 - `default`: *tonic* will bind this value if none was passed with the request. This should not be used if a field is also required. Read the [documentation](https://swagger.io/docs/specification/describing-parameters/) (section _Common Mistakes_) for more informations about this behaviour.
 - `description`: Add a description of the field in the spec.
-- `deprecated`: Indicates if the field is deprecated. accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
+- `deprecated`: Indicates if the field is deprecated. Accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
 - `enum`: A coma separated list of acceptable values for the parameter.
 - `format`: Override the format of the field in the specification. Read the [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat) for more informations.
 - `validate`: Field validation rules. Read the [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8) for more informations.
+- `explode`: Specifies whether arrays should generate separate parameters for each array item or object property (limited to query parameters with *form* style). Accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
 
 ### JSON/XML
 
@@ -244,7 +245,8 @@ The names of the components can be customized in two different ways.
 
 Override the name of a type globally before registering your handlers. This has the highest precedence.
 ```go
-fizz.Generator().OverrideTypeName(reflect.TypeOf(T{}), "OverridedName")
+f := fizz.New()
+f.Generator().OverrideTypeName(reflect.TypeOf(T{}), "OverridedName")
 ```
 
 ##### Interface
