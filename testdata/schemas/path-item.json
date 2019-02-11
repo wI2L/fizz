@@ -68,7 +68,9 @@
                             "ccc"
                         ]
                     }
-                }
+                },
+                "explode": true,
+                "style": "form"
             },
             {
                 "name": "xd",

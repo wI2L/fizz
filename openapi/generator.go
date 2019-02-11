@@ -22,6 +22,11 @@ const (
 	descriptionTag = "description"
 )
 
+var (
+	paramsInPathRe = regexp.MustCompile(`\{(.*?)\}`)
+	ginPathParamRe = regexp.MustCompile(`\/:([^\/]*)`)
+)
+
 // mediaTags maps media types to well-known
 // struct tags used for marshaling.
 var mediaTags = map[string]string{
@@ -281,8 +286,6 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 	return nil
 }
 
-var ginPathParamRe = regexp.MustCompile(`\/:([^\/]*)`)
-
 // rewritePath converts a Gin operation path that use
 // colons and asterisks to declare path parameters, to
 // an OpenAPI representation that use curly braces.
@@ -385,8 +388,6 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 
 	return nil
 }
-
-var paramsInPathRe = regexp.MustCompile(`\{(.*?)\}`)
 
 // setOperationParams adds the fields of the struct type t
 // to the given operation.
@@ -603,7 +604,7 @@ func (g *Generator) newParameterFromField(idx int, t reflect.Type) (*Parameter, 
 	}
 	required := g.isStructFieldRequired(field)
 
-	// Path parameters are aways required.
+	// Path parameters are always required.
 	if location == g.config.PathLocationTag {
 		required = true
 	}
@@ -620,6 +621,18 @@ func (g *Generator) newParameterFromField(idx int, t reflect.Type) (*Parameter, 
 	}
 	if field.Type.Kind() == reflect.Bool && location == g.config.QueryLocationTag {
 		p.AllowEmptyValue = true
+	}
+	// Style.
+	if location == g.config.QueryLocationTag {
+		if field.Type.Kind() == reflect.Slice || field.Type.Kind() == reflect.Array {
+			p.Explode = true // default
+			p.Style = "form" // default in spec, but make it obvious
+			if t := field.Tag.Get(tonic.ExplodeTag); t != "" {
+				if explode, err := strconv.ParseBool(t); err == nil && !explode { // ignore invalid values
+					p.Explode = explode
+				}
+			}
+		}
 	}
 	return p, nil
 }
@@ -820,8 +833,7 @@ func (g *Generator) buildSchemaRecursive(t reflect.Type) *SchemaOrRef {
 		// in additional properties field.
 		schema.Type = "object"
 
-		// JSON Schema allow only strings as
-		// object key.
+		// JSON Schema allow only strings as object key.
 		if t.Key().Kind() != reflect.String {
 			g.error(&TypeError{
 				Message: "encountered type Map with keys of unsupported type",
