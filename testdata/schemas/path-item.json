@@ -56,6 +56,21 @@
                 }
             },
             {
+                "name": "k",
+                "in": "query",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "aaa",
+                            "bbb",
+                            "ccc"
+                        ]
+                    }
+                }
+            },
+            {
                 "name": "xd",
                 "in": "query",
                 "schema": {

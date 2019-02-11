@@ -681,22 +681,17 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 		}
 	}
 	// Enum.
-	es := sf.Tag.Get(g.config.EnumTag)
-	if es != "" {
-		values := strings.Split(es, ",")
-		for _, val := range values {
-			if v, err := stringToType(val, sf.Type); err != nil {
-				g.error(&FieldError{
-					Message:  fmt.Sprintf("enum value %s cannot be converted to field type: %s", val, err),
-					Name:     fname,
-					Type:     sf.Type,
-					TypeName: g.typeName(sf.Type),
-					Parent:   parent,
-				})
-			} else {
-				schema.Enum = append(schema.Enum, v)
-			}
+	// Must be applied to underlying items schema if the
+	// parameter is an array, instead of the parameter schema.
+	enum := g.enumFromStructField(sf, fname, parent)
+
+	if schema.Type == "array" && schema.Items != nil {
+		itemsSchema := g.resolveSchema(schema.Items)
+		if itemsSchema != nil {
+			itemsSchema.Enum = enum
 		}
+	} else {
+		schema.Enum = enum
 	}
 	// Field description.
 	if desc, ok := sf.Tag.Lookup(descriptionTag); ok {
@@ -715,8 +710,36 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 	if t, ok := sf.Tag.Lookup(formatTag); ok {
 		schema.Format = t
 	}
-
 	return sor
+}
+
+func (g *Generator) enumFromStructField(sf reflect.StructField, fname string, parent reflect.Type) []interface{} {
+	var enum []interface{}
+
+	etag := sf.Tag.Get(g.config.EnumTag)
+	if etag != "" {
+		values := strings.Split(etag, ",")
+		sftype := sf.Type
+
+		// Use underlying element type if its an array or a slice.
+		if sftype.Kind() == reflect.Slice || sftype.Kind() == reflect.Array {
+			sftype = sftype.Elem()
+		}
+		for _, val := range values {
+			if v, err := stringToType(val, sftype); err != nil {
+				g.error(&FieldError{
+					Message:  fmt.Sprintf("enum value %s cannot be converted to field type: %s", val, err),
+					Name:     fname,
+					Type:     sf.Type,
+					TypeName: g.typeName(sf.Type),
+					Parent:   parent,
+				})
+			} else {
+				enum = append(enum, v)
+			}
+		}
+	}
+	return enum
 }
 
 // newSchemaFromType creates a new OpenAPI schema from

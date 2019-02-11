@@ -277,11 +277,12 @@ func diffJSON(a, b []byte) (bool, error) {
 // and generates the according specification.
 func TestAddOperation(t *testing.T) {
 	type InEmbed struct {
-		D int     `query:"xd" enum:"1,2,3" default:"1"`
-		E bool    `query:"e"`
-		F *string `json:"f" description:"This is F"`
-		G []byte  `validate:"required"`
-		H uint16  `binding:"-"`
+		D int      `query:"xd" enum:"1,2,3" default:"1"`
+		E bool     `query:"e"`
+		F *string  `json:"f" description:"This is F"`
+		G []byte   `validate:"required"`
+		H uint16   `binding:"-"`
+		K []string `query:"k" enum:"aaa,bbb,ccc"`
 	}
 	type inEmbedPrivate struct {
 		I string `query:"i"`
