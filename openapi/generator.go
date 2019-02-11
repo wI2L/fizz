@@ -313,6 +313,22 @@ func setOperationBymethod(item *PathItem, op *Operation, method string) {
 	}
 }
 
+func isResponseCodeRange(code string) bool {
+	if len(code) != 3 {
+		return false
+	}
+	// First char must be 1, 2, 3, 4 or 5.
+	pre := code[0]
+	if pre < 49 || pre > 53 {
+		return false
+	}
+	// Last two chars are wildcard letter X.
+	if code[1] != 'X' || code[2] != 'X' {
+		return false
+	}
+	return true
+}
+
 // setOperationResponse adds a response to the operation that
 // return the type t with the given media type and status code.
 func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt, desc string, headers []*ResponseHeader) error {
@@ -320,12 +336,21 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 		// A response already exists for this code.
 		return fmt.Errorf("response with code %s already exists", code)
 	}
-	if desc == "" && code != "default" {
-		ci, err := strconv.Atoi(code)
-		if err != nil {
-			return err
+	// Check that the response code is valid per the spec:
+	// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#patterned-fields-1
+	if code != "default" {
+		if !isResponseCodeRange(code) { // ignore ranges
+			// Convert code to number and check that it is
+			// between 100 and 599.
+			ci, err := strconv.Atoi(code)
+			if err != nil {
+				return fmt.Errorf("invalid response code: %s", err)
+			}
+			if ci < 100 || ci > 599 {
+				return fmt.Errorf("response code out of range: %s", code)
+			}
+			desc = http.StatusText(ci)
 		}
-		desc = http.StatusText(ci)
 	}
 	r := &Response{
 		Description: desc,
