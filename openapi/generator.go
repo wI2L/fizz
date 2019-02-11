@@ -863,7 +863,7 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 	// because there is no guarantee the generation is complete yet.
 	if _, ok := g.schemaTypes[t]; ok {
 		return &SchemaOrRef{Reference: &Reference{
-			Ref: "#/components/schemas/" + g.typeName(t),
+			Ref: "#/components/schemas/" + name,
 		}}
 	}
 	schema := &Schema{
@@ -880,10 +880,9 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 
 	sor := &SchemaOrRef{Schema: schema}
 
-	// If the type has a name, register the schema with the
-	// API specification components and return a relative reference.
-	// Unnamed types, like anonymous structs, will always be inlined
-	// in the specification.
+	// Register the schema within the speccomponents and return a
+	// relative reference. Unnamed types, like anonymous structs,
+	// will always be inlined in the specification.
 	if name != "" {
 		g.api.Components.Schemas[name] = sor
 
@@ -939,7 +938,7 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 		fname := fieldNameFromTag(f, mediaTags[tonic.MediaType()])
 		if fname == "" {
 			// Field has no name, skip it.
-			return schema
+			continue
 		}
 		var required bool
 		// The required property of a field is not part of its
