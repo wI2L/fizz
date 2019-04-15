@@ -211,7 +211,7 @@ func (g *Generator) AddTag(name, desc string) {
 // AddOperation add a new operation to the OpenAPI specification
 // using the method and path of the route and the tonic
 // handler informations.
-func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type, info *OperationInfo) error {
+func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type, info *OperationInfo) (*Operation, error) {
 	op := &Operation{
 		ID: uuid.Must(uuid.NewV4()).String(),
 	}
@@ -220,7 +220,7 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 	if info != nil {
 		// Ensure that the provided operation ID is unique.
 		if _, ok := g.operationsIDS[info.ID]; ok {
-			return fmt.Errorf("ID %s is already used by another operation", info.ID)
+			return nil, fmt.Errorf("ID %s is already used by another operation", info.ID)
 		}
 		g.operationsIDS[info.ID] = struct{}{}
 	}
@@ -254,17 +254,17 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 			in = in.Elem()
 		}
 		if in.Kind() != reflect.Struct {
-			return errors.New("input type is not a struct")
+			return nil, errors.New("input type is not a struct")
 		}
 		if err := g.setOperationParams(op, in, in, allowBody, path); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	// Generate the default response from the tonic
 	// handler return type. If the handler has no output
 	// type, the response won't have a schema.
 	if err := g.setOperationResponse(op, out, strconv.Itoa(info.StatusCode), tonic.MediaType(), info.StatusDescription, info.Headers); err != nil {
-		return err
+		return nil, err
 	}
 	// Generate additional responses from the operation
 	// informations.
@@ -277,13 +277,13 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 				resp.Description,
 				resp.Headers,
 			); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 	setOperationBymethod(item, op, method)
 
-	return nil
+	return op, nil
 }
 
 // rewritePath converts a Gin operation path that use

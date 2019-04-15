@@ -16,7 +16,6 @@ import (
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/y0ssar1an/q"
 	"gopkg.in/yaml.v2"
 
 	"github.com/wI2L/fizz/openapi"
@@ -354,6 +353,63 @@ func TestLastChar(t *testing.T) {
 	assert.Panics(t, func() { lastChar("") })
 }
 
+func TestOperationContext(t *testing.T) {
+	fizz := New()
+
+	const (
+		id   = "OperationContext"
+		desc = "Test for OpenAPI operation instance in Gin context"
+	)
+	tonicHandler := tonic.Handler(func(c *gin.Context) error {
+		op, err := OperationFromContext(c)
+		if err == nil && op.ID == id && op.Description == desc {
+			c.Status(http.StatusOK)
+			return nil
+		}
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return nil
+	}, http.StatusOK)
+
+	fizz.GET("/op",
+		[]OperationOption{
+			ID(id),
+			Description(desc),
+		}, tonicHandler,
+	)
+	recorder := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/op", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fizz.ServeHTTP(recorder, req)
+
+	if status := recorder.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status: got %v want %v",
+			status, http.StatusOK,
+		)
+	}
+
+	fizz.POST("/noop", nil, func(c *gin.Context) {
+		_, err := OperationFromContext(c)
+		if err != nil {
+			c.Status(http.StatusOK)
+			return
+		}
+		c.Status(http.StatusInternalServerError)
+	})
+	req, err = http.NewRequest("POST", "/noop", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fizz.ServeHTTP(recorder, req)
+
+	if status := recorder.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status: got %v want %v",
+			status, http.StatusOK,
+		)
+	}
+}
+
 func diffJSON(a, b []byte) (bool, error) {
 	var j1, j2 interface{}
 	if err := json.Unmarshal(a, &j1); err != nil {
@@ -373,6 +429,5 @@ func diffYAML(a, b []byte) (bool, error) {
 	if err := yaml.Unmarshal(b, &j2); err != nil {
 		return false, err
 	}
-	q.Q(j1, j2)
 	return reflect.DeepEqual(j2, j1), nil
 }

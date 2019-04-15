@@ -1,10 +1,12 @@
 package fizz
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"path"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 
@@ -12,6 +14,8 @@ import (
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/wI2L/fizz/openapi"
 )
+
+const ctxOpenAPIOperation = "_ctx_openapi_operation"
 
 // Primitive type helpers.
 var (
@@ -161,13 +165,17 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 	for _, info := range infos {
 		info(oi)
 	}
-	var wrapped []*tonic.Route
+	type wrap struct {
+		h gin.HandlerFunc
+		r *tonic.Route
+	}
+	var wrapped []wrap
 
 	// Find the handlers wrapped with Tonic.
 	for _, h := range handlers {
 		r, err := tonic.GetRouteByHandler(h)
 		if err == nil {
-			wrapped = append(wrapped, r)
+			wrapped = append(wrapped, wrap{h: h, r: r})
 		}
 	}
 	// Check that no more that one tonic-wrapped handler
@@ -175,13 +183,10 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 	if len(wrapped) > 1 {
 		panic(fmt.Sprintf("multiple tonic-wrapped handler used for operation %s %s", method, path))
 	}
-	// Register the handlers with Gin underlying group.
-	g.group.Handle(method, path, handlers...)
-
 	// If we have a tonic-wrapped handler, generate the
 	// specification of this operation.
 	if len(wrapped) == 1 {
-		hfunc := wrapped[0]
+		hfunc := wrapped[0].r
 
 		// Set an operation ID if none is provided.
 		if oi.ID == "" {
@@ -199,13 +204,31 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 		path = joinPaths(g.group.BasePath(), path)
 
 		// Add operation to the OpenAPI spec.
-		if err := g.gen.AddOperation(path, method, g.Name, it, hfunc.OutputType(), oi); err != nil {
+		operation, err := g.gen.AddOperation(path, method, g.Name, it, hfunc.OutputType(), oi)
+		if err != nil {
 			panic(fmt.Sprintf(
 				"error while generating OpenAPI spec on operation %s %s: %s",
 				method, path, err,
 			))
 		}
+		// If an operation was generated for the handler,
+		// wrap the Tonic-wrapped handled with a closure
+		// to inject it into the Gin context.
+		if operation != nil {
+			for i, h := range handlers {
+				if funcEqual(h, wrapped[0].h) {
+					orig := h // copy the original func
+					handlers[i] = func(c *gin.Context) {
+						c.Set(ctxOpenAPIOperation, operation)
+						orig(c)
+					}
+				}
+			}
+		}
 	}
+	// Register the handlers with Gin underlying group.
+	g.group.Handle(method, path, handlers...)
+
 	return g
 }
 
@@ -316,6 +339,18 @@ func InputModel(model interface{}) func(*openapi.OperationInfo) {
 	}
 }
 
+// OperationFromContext returns the OpenAPI operation from
+// the givent Gin context or an error if none is found.
+func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
+	if v, ok := c.Get(ctxOpenAPIOperation); ok {
+		if op, ok := v.(*openapi.Operation); ok {
+			return op, nil
+		}
+		return nil, errors.New("invalid type: not an operation")
+	}
+	return nil, errors.New("operation not found")
+}
+
 func joinPaths(abs, rel string) string {
 	if rel == "" {
 		return abs
@@ -333,4 +368,14 @@ func lastChar(str string) uint8 {
 		panic("empty string")
 	}
 	return str[len(str)-1]
+}
+
+func funcEqual(f1, f2 interface{}) bool {
+	v1 := reflect.ValueOf(f1)
+	v2 := reflect.ValueOf(f2)
+
+	if v1.Kind() == reflect.Func && v2.Kind() == reflect.Func { // prevent panic on call to Pointer()
+		return runtime.FuncForPC(v1.Pointer()).Entry() == runtime.FuncForPC(v2.Pointer()).Entry()
+	}
+	return false
 }
