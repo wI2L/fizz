@@ -341,7 +341,7 @@ func TestAddOperation(t *testing.T) {
 			},
 		},
 	}
-	err := g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
+	_, err := g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
 	if err != nil {
 		t.Error(err)
 	}
@@ -349,7 +349,7 @@ func TestAddOperation(t *testing.T) {
 	// No parameters should be present, and a response
 	// matching the default status code used by tonic
 	// should be present with no content.
-	err = g.AddOperation(path, "PUT", "Test", nil, nil, &OperationInfo{
+	_, err = g.AddOperation(path, "PUT", "Test", nil, nil, &OperationInfo{
 		ID:          "UpdateTest",
 		StatusCode:  204,
 		Description: "Update a test.",
@@ -384,11 +384,11 @@ func TestAddOperation(t *testing.T) {
 	}
 	// Try to add the operation again with the same
 	// identifier. Expected to fail.
-	err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
+	_, err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
 	assert.NotNil(t, err)
 
 	// Add an operation with a bad input type.
-	err = g.AddOperation("/", "GET", "", reflect.TypeOf(new(string)), nil, nil)
+	_, err = g.AddOperation("/", "GET", "", reflect.TypeOf(new(string)), nil, nil)
 	assert.NotNil(t, err)
 }
 
