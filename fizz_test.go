@@ -14,7 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 
@@ -128,12 +128,23 @@ type In struct {
 func TestTonicHandler(t *testing.T) {
 	fizz := New()
 
-	fizz.GET("/:a", nil, tonic.Handler(func(c *gin.Context, params *In) (*T, error) {
+	fizz.GET("/foo/:a", nil, tonic.Handler(func(c *gin.Context, params *In) (*T, error) {
 		assert.Equal(t, 0, params.A)
 		assert.Equal(t, "foobar", params.B)
 		assert.Equal(t, "foobaz", params.C)
 
 		return &T{X: "foo", Y: 1}, nil
+	}, 200))
+
+	// Create a router group to test that tonic handlers works with router groups.
+	grp := fizz.Group("/test", "Test Group", "Test Group")
+
+	grp.GET("/bar/:a", nil, tonic.Handler(func(c *gin.Context, params *In) (*T, error) {
+		assert.Equal(t, 42, params.A)
+		assert.Equal(t, "group-foobar", params.B)
+		assert.Equal(t, "group-foobaz", params.C)
+
+		return &T{X: "group-foo", Y: 2}, nil
 	}, 200))
 
 	srv := httptest.NewServer(fizz)
@@ -142,31 +153,73 @@ func TestTonicHandler(t *testing.T) {
 	c := srv.Client()
 	c.Timeout = 1 * time.Second
 
-	url, err := url.Parse(srv.URL)
-	if err != nil {
-		t.Error(err)
-	}
-	url.Path = "/0"
-	url.RawQuery = "b=foobar"
+	requests := []struct {
+		url    string
+		method string
+		header http.Header
 
-	resp, err := c.Do(&http.Request{
-		URL:    url,
-		Method: http.MethodGet,
-		Header: http.Header{
-			"X-Test-C": []string{"foobaz"},
+		expectStatus int
+		expectBody   string
+	}{
+		{
+			url:    "/foo/0?b=foobar",
+			method: http.MethodGet,
+			header: http.Header{
+				"X-Test-C": []string{"foobaz"},
+			},
+			expectStatus: 200,
+			expectBody:   `{"x":"foo","y":1}`,
 		},
-	})
-	if err != nil {
-		t.Error(err)
+		{
+			url:    "/test/bar/42?b=group-foobar",
+			method: http.MethodGet,
+			header: http.Header{
+				"X-Test-C": []string{"group-foobaz"},
+			},
+			expectStatus: 200,
+			expectBody:   `{"x":"group-foo","y":2}`,
+		},
+		{
+			url:    "/bar/42?b=group-foobar",
+			method: http.MethodGet,
+			header: http.Header{
+				"X-Test-C": []string{"group-foobaz"},
+			},
+			expectStatus: 404,
+		},
 	}
-	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Error(err)
+	for _, req := range requests {
+		url, err := url.Parse(srv.URL + req.url)
+		if err != nil {
+			t.Error(err)
+			break
+		}
+
+		resp, err := c.Do(&http.Request{
+			URL:    url,
+			Method: req.method,
+			Header: req.header,
+		})
+		if err != nil {
+			t.Error(err)
+			break
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Error(err)
+			break
+		}
+
+		if req.expectStatus < 300 {
+			assert.Equal(t, req.expectStatus, resp.StatusCode)
+			assert.Equal(t, req.expectBody, string(body))
+		} else {
+			assert.Equal(t, req.expectStatus, resp.StatusCode)
+		}
 	}
-	assert.Equal(t, 200, resp.StatusCode)
-	assert.Equal(t, `{"x":"foo","y":1}`, string(body))
 }
 
 type testInputModel struct {
