@@ -200,11 +200,11 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 			it = reflect.TypeOf(oi.InputModel)
 		}
 
-		// Consolidate path.
-		path = joinPaths(g.group.BasePath(), path)
+		// Consolidate path for OpenAPI spec.
+		operationPath := joinPaths(g.group.BasePath(), path)
 
 		// Add operation to the OpenAPI spec.
-		operation, err := g.gen.AddOperation(path, method, g.Name, it, hfunc.OutputType(), oi)
+		operation, err := g.gen.AddOperation(operationPath, method, g.Name, it, hfunc.OutputType(), oi)
 		if err != nil {
 			panic(fmt.Sprintf(
 				"error while generating OpenAPI spec on operation %s %s: %s",
