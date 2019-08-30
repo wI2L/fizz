@@ -293,7 +293,7 @@ Fizz supports some native and imported types. A schema with a proper type and fo
 * [net.URL](https://golang.org/pkg/net/url/#URL)
 * [net.IP](https://golang.org/pkg/net/#IP)  
 Note that, according to the doc, the inherent version of the address is a semantic property, and thus cannot be determined by Fizz. Therefore, the format returned is simply `ip`. If you want to specify the version, you can use the tags `format:"ipv4"` or `format:"ipv6"`.
-* [uuid.UUID](https://godoc.org/github.com/satori/go.uuid#UUID)
+* [uuid.UUID](https://godoc.org/github.com/gofrs/uuid#UUID)
 
 #### Markdown
 

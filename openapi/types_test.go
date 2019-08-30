@@ -8,7 +8,7 @@ import (
 	"time"
 	"unsafe"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -247,7 +247,7 @@ func TestStringToType(t *testing.T) {
 // TypeDateTime tests that imported types
 // are properly handled.
 func TestImportedTypes(t *testing.T) {
-	// github.com/satori/go.uuid
+	// github.com/gofrs/uuid
 	uuid := uuid.Must(uuid.NewV4())
 	dt := DataTypeFromType(rt(uuid))
 	assert.Equal(t, "string", dt.Type())
