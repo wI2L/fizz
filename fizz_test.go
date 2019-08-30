@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/loopfz/gadgeto/tonic"
-	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 

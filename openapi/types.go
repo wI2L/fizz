@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 	tofNetURL    = reflect.TypeOf(url.URL{})
 
 	// Imported.
-	tofSatoriUUID = reflect.TypeOf(uuid.UUID{})
+	tofUUID = reflect.TypeOf(uuid.UUID{})
 )
 
 var _ DataType = (*InternalDataType)(nil)
@@ -165,8 +165,8 @@ func DataTypeFromType(t reflect.Type) DataType {
 }
 
 func isImportedType(t reflect.Type) DataType {
-	// github.com/satori/go.uuid
-	if t == tofSatoriUUID {
+	// github.com/gofrs/uuid
+	if t == tofUUID {
 		return TypeUUID
 	}
 	return nil
