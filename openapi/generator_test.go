@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Pallinder/go-randomdata"
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/stretchr/testify/assert"
-	"github.com/tjarratt/babble"
 )
 
 var genConfig = &SpecGenConfig{
@@ -442,8 +442,6 @@ func TestSetInfo(t *testing.T) {
 // is added to a path item accordingly to the given
 // HTTP method.
 func TestSetOperationByMethod(t *testing.T) {
-	babbler := babble.NewBabbler()
-
 	pi := &PathItem{}
 	for method, ptr := range map[string]**Operation{
 		"GET":     &pi.GET,
@@ -455,7 +453,7 @@ func TestSetOperationByMethod(t *testing.T) {
 		"OPTIONS": &pi.OPTIONS,
 		"TRACE":   &pi.TRACE,
 	} {
-		desc := babbler.Babble()
+		desc := randomdata.SillyName()
 		op := &Operation{
 			Description: desc,
 		}
