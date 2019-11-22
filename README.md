@@ -2,12 +2,18 @@
 <h1 align="center">Fizz</h1>
 <p align="center"><img src="images/lemon.png" height="200px" width="auto" alt="Gin Fizz"></p><p align="center">Fizz is a wrapper for <strong>Gin</strong> based on <i>gadgeto/tonic</i>.</p>
 <p align="center">It generates wrapping gin-compatible handlers that do all the repetitive work and wrap the call to your handlers. It can also generates an *almost* complete <strong>OpenAPI 3</strong> specification of your API.</p>
-<p align="center"><br>
-<a href="https://godoc.org/github.com/wI2L/fizz"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a> <a href="https://goreportcard.com/report/wI2L/fizz"><img src="https://goreportcard.com/badge/github.com/wI2L/fizz"></a> <a href="https://travis-ci.org/wI2L/fizz"><img src="https://travis-ci.org/wI2L/fizz.svg?branch=master"></a> <a href="https://codecov.io/gh/wI2L/fizz"><img src="https://codecov.io/gh/wI2L/fizz/branch/master/graph/badge.svg"/></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+<p align="center">
+   <a href="https://godoc.org/github.com/wI2L/fizz"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a>
+   <a href="https://goreportcard.com/report/wI2L/fizz"><img src="https://goreportcard.com/badge/github.com/wI2L/fizz"></a>
+   <a href="https://travis-ci.org/wI2L/fizz"><img src="https://travis-ci.org/wI2L/fizz.svg?branch=master"></a>
+   <a href="https://codecov.io/gh/wI2L/fizz"><img src="https://codecov.io/gh/wI2L/fizz/branch/master/graph/badge.svg"/></a>
+   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 <br>
 </p>
 
 ---
+
+### Getting started
 
 To create a Fizz instance, you can pass an existing *Gin* engine to `fizz.NewFromEngine`, or use `fizz.New` that will use a new default *Gin* engine.
 
