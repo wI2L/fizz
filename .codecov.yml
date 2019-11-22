@@ -1,0 +1,11 @@
+coverage:
+  range: 80..100
+  status:
+    # Prevent small variations of coverage from failing CI.
+    project:
+      default:
+        threshold: 1%
+    patch: off
+ignore:
+  - "examples/"
+  - "markdown/"

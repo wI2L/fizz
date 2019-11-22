@@ -45,6 +45,7 @@ type Generator struct {
 	errors        []error
 	fullNames     bool
 	sortParams    bool
+	sortTags      bool
 }
 
 // NewGenerator returns a new OpenAPI generator.
@@ -72,6 +73,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 		operationsIDS: make(map[string]struct{}),
 		fullNames:     true,
 		sortParams:    true,
+		sortTags:      true,
 	}, nil
 }
 
@@ -124,11 +126,17 @@ func (g *Generator) UseFullSchemaNames(b bool) {
 	g.fullNames = b
 }
 
-// SetSortParams controls whether the generator should sort the
-// parameters of an operation by location and name in ascending
-// order.
+// SetSortParams controls whether the generator should
+// sort the parameters of an operation by location and
+// name in ascending order.
 func (g *Generator) SetSortParams(b bool) {
 	g.sortParams = b
+}
+
+// SetSortTags controls whether the generator should
+// sort the global tags sections.
+func (g *Generator) SetSortTags(b bool) {
+	g.sortTags = b
 }
 
 // OverrideTypeName registers a custom name for a
@@ -200,12 +208,14 @@ func (g *Generator) AddTag(name, desc string) {
 		Name:        name,
 		Description: desc,
 	})
-	sort.SliceStable(g.api.Tags, func(i, j int) bool {
-		if g.api.Tags[i] != nil && g.api.Tags[j] != nil {
-			return g.api.Tags[i].Name < g.api.Tags[j].Name
-		}
-		return false
-	})
+	if g.sortTags {
+		sort.SliceStable(g.api.Tags, func(i, j int) bool {
+			if g.api.Tags[i] != nil && g.api.Tags[j] != nil {
+				return g.api.Tags[i].Name < g.api.Tags[j].Name
+			}
+			return false
+		})
+	}
 }
 
 // AddOperation add a new operation to the OpenAPI specification
