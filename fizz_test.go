@@ -280,7 +280,7 @@ func TestSpecHandler(t *testing.T) {
 				"basePath": &openapi.ServerVariable{
 					Default:     "v2",
 					Description: "version of the API",
-					Ennum:       []string{"v1", "v2", "beta"},
+					Enum:        []string{"v1", "v2", "beta"},
 				},
 			},
 		},
