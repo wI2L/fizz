@@ -563,7 +563,7 @@ func TestSetServers(t *testing.T) {
 		&Server{URL: "https://prod.api.foo.bar/{basePath}", Description: "Production server", Variables: map[string]*ServerVariable{
 			"basePath": &ServerVariable{
 				Description: "Version of the API",
-				Ennum: []string{
+				Enum: []string{
 					"v1", "v2", "beta",
 				},
 				Default: "v2",

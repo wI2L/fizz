@@ -56,7 +56,7 @@ type Server struct {
 // ServerVariable represents a server variable for server
 // URL template substitution.
 type ServerVariable struct {
-	Ennum       []string `json:"enum,omitempty" yaml:"enum,omitempty"`
+	Enum        []string `json:"enum,omitempty" yaml:"enum,omitempty"`
 	Default     string   `json:"default" yaml:"default"`
 	Description string   `json:"description,omitempty" yaml:"description,omitempty"`
 }
