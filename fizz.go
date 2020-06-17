@@ -15,8 +15,6 @@ import (
 	"github.com/wI2L/fizz/openapi"
 )
 
-const ctxOpenAPIOperation = "_ctx_openapi_operation"
-
 // Primitive type helpers.
 var (
 	Integer  int32
@@ -215,15 +213,7 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 		// wrap the Tonic-wrapped handled with a closure
 		// to inject it into the Gin context.
 		if operation != nil {
-			for i, h := range handlers {
-				if funcEqual(h, wrapped[0].h) {
-					orig := h // copy the original func
-					handlers[i] = func(c *gin.Context) {
-						c.Set(ctxOpenAPIOperation, operation)
-						orig(c)
-					}
-				}
-			}
+			operations[hfunc.HandlerNameWithPackage()] = operation
 		}
 	}
 	// Register the handlers with Gin underlying group.
@@ -231,6 +221,8 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 
 	return g
 }
+
+var operations = map[string]*openapi.Operation{}
 
 // OpenAPI returns a Gin HandlerFunc that serves
 // the marshalled OpenAPI specification of the API.
@@ -342,13 +334,16 @@ func InputModel(model interface{}) func(*openapi.OperationInfo) {
 // OperationFromContext returns the OpenAPI operation from
 // the givent Gin context or an error if none is found.
 func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
-	if v, ok := c.Get(ctxOpenAPIOperation); ok {
-		if op, ok := v.(*openapi.Operation); ok {
-			return op, nil
-		}
-		return nil, errors.New("invalid type: not an operation")
+	tonicRoute, err := tonic.GetRouteByHandler(c.Handler())
+	if err != nil {
+		// Route not declared with tonic
+		return nil, errors.New("tonic route not found")
 	}
-	return nil, errors.New("operation not found")
+	op, ok := operations[tonicRoute.HandlerNameWithPackage()]
+	if !ok {
+		return nil, errors.New("operation not found")
+	}
+	return op, nil
 }
 
 func joinPaths(abs, rel string) string {
