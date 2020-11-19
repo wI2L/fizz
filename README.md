@@ -190,6 +190,7 @@ You can use additional tags. Some will be interpreted by *tonic*, others will be
 - `description`: Add a description of the field in the spec.
 - `deprecated`: Indicates if the field is deprecated. Accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
 - `enum`: A coma separated list of acceptable values for the parameter.
+- `example`: An example value to be used in OpenAPI specification.
 - `format`: Override the format of the field in the specification. Read the [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat) for more informations.
 - `validate`: Field validation rules. Read the [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8) for more informations.
 - `explode`: Specifies whether arrays should generate separate parameters for each array item or object property (limited to query parameters with *form* style). Accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
