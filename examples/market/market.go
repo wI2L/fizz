@@ -9,9 +9,9 @@ import (
 
 // Fruit represents a sweet, fresh fruit.
 type Fruit struct {
-	Name    string    `json:"name" validate:"required"`
+	Name    string    `json:"name" validate:"required" example:"banana"`
 	Origin  string    `json:"origin" validate:"required" description:"Country of origin of the fruit" enum:"ecuador,france,senegal,china,spain"`
-	Price   float64   `json:"price" validate:"required" description:"Price in euros"`
+	Price   float64   `json:"price" validate:"required" description:"Price in euros" example:"5.13"`
 	AddedAt time.Time `json:"-" binding:"-" description:"Date of addition of the fruit to the market"`
 }
 

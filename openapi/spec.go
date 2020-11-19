@@ -156,6 +156,7 @@ type Schema struct {
 	Description          string                  `json:"description,omitempty" yaml:"description,omitempty"`
 	Format               string                  `json:"format,omitempty" yaml:"format,omitempty"`
 	Default              interface{}             `json:"default,omitempty" yaml:"default,omitempty"`
+	Example              interface{}             `json:"example,omitempty" yaml:"example,omitempty"`
 
 	// The following properties are taken directly from the
 	// JSON Schema definition and follow the same specifications

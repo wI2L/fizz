@@ -226,6 +226,40 @@ func TestNewSchemaFromStructErrors(t *testing.T) {
 	assert.Nil(t, sor)
 }
 
+// TestNewSchemaFromStructFieldExampleValues tests the
+// case of setting example values.
+func TestNewSchemaFromStructFieldExampleValues(t *testing.T) {
+	g := gen(t)
+
+	type T struct {
+		A string  `example:"value"`
+		B int     `example:"1"`
+		C float64 `example:"0.1"`
+		D bool    `example:"true"`
+	}
+	typ := reflect.TypeOf(T{})
+
+	// Field A contains string example.
+	sor := g.newSchemaFromStructField(typ.Field(0), false, "A", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, "value", sor.Example)
+
+	// Field B contains int example.
+	sor = g.newSchemaFromStructField(typ.Field(1), false, "B", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, int64(1), sor.Example)
+
+	// Field C contains float example.
+	sor = g.newSchemaFromStructField(typ.Field(2), false, "C", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, 0.1, sor.Example)
+
+	// Field D contains boolean example.
+	sor = g.newSchemaFromStructField(typ.Field(3), false, "D", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, true, sor.Example)
+}
+
 // TestNewSchemaFromStructFieldErrors tests the errors
 // case of generation of a schema from a struct field.
 func TestNewSchemaFromStructFieldErrors(t *testing.T) {
@@ -235,6 +269,7 @@ func TestNewSchemaFromStructFieldErrors(t *testing.T) {
 		A string `validate:"required" default:"foobar"`
 		B int    `default:"foobaz"`
 		C int    `enum:"a,1,c"`
+		D bool   `example:"not-a-bool-value"`
 	}
 	typ := reflect.TypeOf(T{})
 
@@ -260,6 +295,17 @@ func TestNewSchemaFromStructFieldErrors(t *testing.T) {
 	assert.Len(t, g.Errors(), 4)
 	assert.NotEmpty(t, g.Errors()[2].Error())
 	assert.NotEmpty(t, g.Errors()[3].Error())
+
+	// Field D has example value that cannot be parsed to bool.
+	sor = g.newSchemaFromStructField(typ.Field(3), false, "D", typ)
+	assert.NotNil(t, sor)
+	assert.Len(t, g.Errors(), 5)
+	assert.NotEmpty(t, g.Errors()[4].Error())
+	// check that Name & Type of the error are set correctly
+	fe, ok := g.Errors()[4].(*FieldError)
+	assert.True(t, ok)
+	assert.Equal(t, "D", fe.Name)
+	assert.Equal(t, reflect.Bool, fe.Type.Kind())
 }
 
 func diffJSON(a, b []byte) (bool, error) {
@@ -574,6 +620,58 @@ func TestSetServers(t *testing.T) {
 
 	assert.NotNil(t, g.API().Servers)
 	assert.Equal(t, servers, g.API().Servers)
+}
+
+// TestGenerator_parseExampleValue tests the parsing of example values.
+func TestGenerator_parseExampleValue(t *testing.T) {
+	var testCases = []struct {
+		testName    string
+		typ         reflect.Type
+		inputValue  string
+		outputValue interface{}
+	}{
+		{
+			"mapping to string",
+			reflect.TypeOf("value"),
+			"value",
+			"value",
+		}, {
+			"mapping to int",
+			reflect.TypeOf(1),
+			"1",
+			int64(1),
+		}, {
+			"mapping to uint8",
+			reflect.TypeOf(uint8(1)),
+			"1",
+			uint64(1),
+		}, {
+			"mapping to number",
+			reflect.TypeOf(1.23),
+			"1.23",
+			1.23,
+		}, {
+			"mapping to boolean",
+			reflect.TypeOf(true),
+			"true",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			returned, err := parseExampleValue(tc.typ, tc.inputValue)
+			assert.Nil(t, err)
+			assert.Equal(t, tc.outputValue, returned)
+		})
+	}
+}
+
+// TestGenerator_parseExampleValueError tests that
+// parseExampleValue raises error on unsupported type.
+func TestGenerator_parseExampleValueError(t *testing.T) {
+	_, err := parseExampleValue(reflect.TypeOf(map[string]string{}), "whatever")
+	assert.Error(t, err, "parseExampleValue does not support type")
 }
 
 func gen(t *testing.T) *Generator {

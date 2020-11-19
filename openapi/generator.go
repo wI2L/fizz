@@ -758,6 +758,22 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 	if t, ok := sf.Tag.Lookup(formatTag); ok {
 		schema.Format = t
 	}
+
+	// Set example value from tag to schema
+	if e := strings.TrimSpace(sf.Tag.Get("example")); e != "" {
+		if parsed, err := parseExampleValue(sf.Type, e); err != nil {
+			g.error(&FieldError{
+				Message:  fmt.Sprintf("could not parse the example value %q of field %q: %s", e, fname, err),
+				Name:     fname,
+				Type:     sf.Type,
+				TypeName: g.typeName(sf.Type),
+				Parent:   parent,
+			})
+		} else {
+			schema.Example = parsed
+		}
+	}
+
 	return sor
 }
 
@@ -1160,4 +1176,22 @@ func fieldNameFromTag(sf reflect.StructField, tagName string) string {
 		return ""
 	}
 	return name
+}
+
+/// parseExampleValue is used to transform the string representation of the example value to the correct type.
+func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
+	switch t.Kind() {
+	case reflect.Bool:
+		return strconv.ParseBool(value)
+	case reflect.String:
+		return value, nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return strconv.ParseInt(value, 10, t.Bits())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return strconv.ParseUint(value, 10, t.Bits())
+	case reflect.Float32, reflect.Float64:
+		return strconv.ParseFloat(value, t.Bits())
+	default:
+		return nil, fmt.Errorf("unsuported type: %s", t.String())
+	}
 }
