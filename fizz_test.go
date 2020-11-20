@@ -259,6 +259,11 @@ func TestSpecHandler(t *testing.T) {
 					Description: "Rate limit",
 					Model:       Integer,
 				},
+			}, nil),
+			Response("404", "", String, nil, "not-found-example"),
+			ResponseWithExamples("400", "", String, nil, map[string]interface{}{
+				"one": "message1",
+				"two": "message2",
 			}),
 		},
 		tonic.Handler(func(c *gin.Context) error {

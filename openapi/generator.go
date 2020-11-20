@@ -274,7 +274,7 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 	// Generate the default response from the tonic
 	// handler return type. If the handler has no output
 	// type, the response won't have a schema.
-	if err := g.setOperationResponse(op, out, strconv.Itoa(info.StatusCode), tonic.MediaType(), info.StatusDescription, info.Headers); err != nil {
+	if err := g.setOperationResponse(op, out, strconv.Itoa(info.StatusCode), tonic.MediaType(), info.StatusDescription, info.Headers, nil, nil); err != nil {
 		return nil, err
 	}
 	// Generate additional responses from the operation
@@ -287,6 +287,8 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 				tonic.MediaType(),
 				resp.Description,
 				resp.Headers,
+				resp.Example,
+				resp.Examples,
 			); err != nil {
 				return nil, err
 			}
@@ -345,11 +347,16 @@ func isResponseCodeRange(code string) bool {
 
 // setOperationResponse adds a response to the operation that
 // return the type t with the given media type and status code.
-func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt, desc string, headers []*ResponseHeader) error {
+func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt, desc string, headers []*ResponseHeader, example interface{}, examples map[string]interface{}) error {
 	if _, ok := op.Responses[code]; ok {
 		// A response already exists for this code.
 		return fmt.Errorf("response with code %s already exists", code)
 	}
+	if example != nil && examples != nil {
+		// Cannot set both 'example' and 'examples' values
+		return fmt.Errorf("'example' and 'examples' are mutually exclusive")
+	}
+
 	// Check that the response code is valid per the spec:
 	// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#patterned-fields-1
 	if code != "default" {
@@ -371,12 +378,24 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 		Content:     make(map[string]*MediaTypeOrRef),
 		Headers:     make(map[string]*HeaderOrRef),
 	}
+
+	var castedExamples map[string]*ExampleOrRef
+	if examples != nil {
+		castedExamples = make(map[string]*ExampleOrRef)
+		for name, val := range examples {
+			castedExamples[name] = &ExampleOrRef{Example: &Example{Value: val}}
+		}
+	}
+
 	// The response may have no content type specified,
 	// in which case we don't assign a schema.
 	schema := g.newSchemaFromType(t)
-	if schema != nil {
+
+	if schema != nil || example != nil || castedExamples != nil {
 		r.Content[mt] = &MediaTypeOrRef{MediaType: &MediaType{
-			Schema: schema,
+			Schema:   schema,
+			Example:  example,
+			Examples: castedExamples,
 		}}
 	}
 	// Assign headers.

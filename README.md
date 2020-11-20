@@ -75,8 +75,18 @@ fizz.ID(id string)
 fizz.Deprecated(deprecated bool)
 
 // Add an additional response to the operation.
-// model and header may be `nil`.
-fizz.Response(statusCode, desc string, model interface{}, headers []*ResponseHeader)
+// The example argument will populate a single example in the response schema.
+// For populating multiple examples, use fizz.ResponseWithExamples.
+// Notice that example and examples fields are mutually exclusive.
+// model, header, and example may be `nil`.
+fizz.Response(statusCode, desc string, model interface{}, headers []*ResponseHeader, example interface{})
+
+// ResponseWithExamples is a variant of Response that supports providing multiple examples.
+// Examples argument will populate multiple examples in the response schema.
+// For populating a single example, use fizz.Response.
+// Notice that example and examples fields are mutually exclusive.
+// model, header, and examples may be `nil`.
+fizz.ResponseWithExamples(statusCode, desc string, model interface{}, headers []*ResponseHeader, examples map[string]interface{})
 
 // Add an additional header to the default response.
 // Model can be of any type, and may also be `nil`,

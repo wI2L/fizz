@@ -28,6 +28,24 @@ paths:
               description: Unique request ID
               schema:
                 type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                one:
+                  value: message1
+                two:
+                  value: message2
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+              example: not-found-example
         '429':
           description: Too Many Requests
           headers:

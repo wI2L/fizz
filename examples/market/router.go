@@ -46,20 +46,25 @@ func routes(grp *fizz.RouterGroup) {
 	// Add a new fruit to the market.
 	grp.POST("", []fizz.OperationOption{
 		fizz.Summary("Add a fruit to the market"),
-		fizz.Response("400", "Bad request", nil, nil),
+		fizz.Response("400", "Bad request", nil, nil,
+			map[string]interface{}{"error": "fruit already exists"},
+		),
 	}, tonic.Handler(CreateFruit, 200))
 
 	// Remove a fruit from the market,
 	// probably because it rotted.
 	grp.DELETE("/:name", []fizz.OperationOption{
 		fizz.Summary("Remove a fruit from the market"),
-		fizz.Response("400", "Fruit not found", nil, nil),
+		fizz.ResponseWithExamples("400", "Bad request", nil, nil, map[string]interface{}{
+			"fruitNotFound": map[string]interface{}{"error": "fruit not found"},
+			"invalidApiKey": map[string]interface{}{"error": "invalid api key"},
+		}),
 	}, tonic.Handler(DeleteFruit, 204))
 
 	// List all available fruits.
 	grp.GET("", []fizz.OperationOption{
 		fizz.Summary("List the fruits of the market"),
-		fizz.Response("400", "Bad request", nil, nil),
+		fizz.Response("400", "Bad request", nil, nil, nil),
 		fizz.Header("X-Market-Listing-Size", "Listing size", fizz.Long),
 	}, tonic.Handler(ListFruits, 200))
 }

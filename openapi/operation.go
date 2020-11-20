@@ -31,4 +31,6 @@ type OperationResponse struct {
 	Description string
 	Model       interface{}
 	Headers     []*ResponseHeader
+	Example     interface{}
+	Examples    map[string]interface{}
 }
