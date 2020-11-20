@@ -364,13 +364,13 @@ func TestAddOperation(t *testing.T) {
 		Summary:     "ABC",
 		Description: "XYZ",
 		Deprecated:  true,
-		Responses: []*OperationReponse{
-			&OperationReponse{
+		Responses: []*OperationResponse{
+			&OperationResponse{
 				Code:        "400",
 				Description: "Bad Request",
 				Model:       CustomError{},
 			},
-			&OperationReponse{
+			&OperationResponse{
 				Code:        "5XX",
 				Description: "Server Errors",
 			},

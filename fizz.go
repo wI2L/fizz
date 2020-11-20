@@ -312,7 +312,7 @@ func Deprecated(deprecated bool) func(*openapi.OperationInfo) {
 // Response adds an additional response to the operation.
 func Response(statusCode, desc string, model interface{}, headers []*openapi.ResponseHeader) func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
-		o.Responses = append(o.Responses, &openapi.OperationReponse{
+		o.Responses = append(o.Responses, &openapi.OperationResponse{
 			Code:        statusCode,
 			Description: desc,
 			Model:       model,
