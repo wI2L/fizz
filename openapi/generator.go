@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	version        = "3.0.1"
-	anyMediaType   = "*/*"
-	formatTag      = "format"
-	deprecatedTag  = "deprecated"
-	descriptionTag = "description"
+	version              = "3.0.1"
+	anyMediaType         = "*/*"
+	formatTag            = "format"
+	deprecatedTag        = "deprecated"
+	descriptionTag       = "description"
+	componentsSchemaPath = "#/components/schemas/"
 )
 
 var (
@@ -407,6 +408,26 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 	}
 	if err := g.buildParamsRecursive(op, t, parent, allowBody); err != nil {
 		return err
+	}
+	// Input fields that are neither path- nor query-bound
+	// have been extracted into the operation's RequestBody
+	// If the RequestBody is not nil, give it a name and
+	// move it to the openapi spec's components/schemas section
+	// Replace the RequestBody's schema with a reference
+	// to the named schema in components/schemas
+	if op.RequestBody != nil {
+		mt := tonic.MediaType()
+		if mt == "" {
+			mt = anyMediaType
+		}
+		sch := op.RequestBody.Content[mt].Schema
+		if sch != nil {
+			name := strings.Title(op.ID) + "Input"
+			g.api.Components.Schemas[name] = sch
+			op.RequestBody.Content[mt].Schema = &SchemaOrRef{Reference: &Reference{
+				Ref: componentsSchemaPath + name,
+			}}
+		}
 	}
 	// Extract all the path parameter names.
 	matches := paramsInPathRe.FindAllStringSubmatch(path, -1)
@@ -901,7 +922,7 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 	// because there is no guarantee the generation is complete yet.
 	if _, ok := g.schemaTypes[t]; ok {
 		return &SchemaOrRef{Reference: &Reference{
-			Ref: "#/components/schemas/" + name,
+			Ref: componentsSchemaPath + name,
 		}}
 	}
 	schema := &Schema{
@@ -925,7 +946,7 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 		g.api.Components.Schemas[name] = sor
 
 		return &SchemaOrRef{Reference: &Reference{
-			Ref: "#/components/schemas/" + name,
+			Ref: componentsSchemaPath + name,
 		}}
 	}
 	// Return an inlined schema for types with no name.

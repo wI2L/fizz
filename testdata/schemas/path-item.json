@@ -101,21 +101,7 @@
             "content": {
                 "application/json": {
                     "schema": {
-                        "type": "object",
-                        "properties": {
-                            "G": {
-                                "type": "string",
-                                "format": "byte"
-                            },
-                            "f": {
-                                "type": "string",
-                                "description": "This is F",
-                                "nullable": true
-                            }
-                        },
-                        "required": [
-                            "G"
-                        ]
+                        "$ref": "#/components/schemas/CreateTestInput"
                     }
                 }
             }
