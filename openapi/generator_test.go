@@ -364,13 +364,13 @@ func TestAddOperation(t *testing.T) {
 		Summary:     "ABC",
 		Description: "XYZ",
 		Deprecated:  true,
-		Responses: []*OperationReponse{
-			&OperationReponse{
+		Responses: []*OperationResponse{
+			&OperationResponse{
 				Code:        "400",
 				Description: "Bad Request",
 				Model:       CustomError{},
 			},
-			&OperationReponse{
+			&OperationResponse{
 				Code:        "5XX",
 				Description: "Server Errors",
 			},
@@ -516,21 +516,75 @@ func TestSetOperationResponseError(t *testing.T) {
 	op := &Operation{
 		Responses: make(Responses),
 	}
-	err := g.setOperationResponse(op, reflect.TypeOf(new(string)), "200", "application/json", "", nil)
+	err := g.setOperationResponse(op, reflect.TypeOf(new(string)), "200", "application/json", "", nil, nil, nil)
 	assert.Nil(t, err)
 
 	// Add another response with same code.
-	err = g.setOperationResponse(op, reflect.TypeOf(new(int)), "200", "application/xml", "", nil)
+	err = g.setOperationResponse(op, reflect.TypeOf(new(int)), "200", "application/xml", "", nil, nil, nil)
 	assert.NotNil(t, err)
 
 	// Add invalid response code that cannot
 	// be converted to an integer.
-	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "two-hundred", "", "", nil)
+	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "two-hundred", "", "", nil, nil, nil)
 	assert.NotNil(t, err)
 
 	// Add out of range response code.
-	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "777", "", "", nil)
+	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "777", "", "", nil, nil, nil)
 	assert.NotNil(t, err)
+
+	// Cannot set both example and examples
+	err = g.setOperationResponse(op, reflect.TypeOf(new(bool)), "404", "", "", nil, "notFoundExample", map[string]interface{}{"badRequest": "message"})
+	assert.NotNil(t, err)
+}
+
+// TestSetOperationResponseExample tests that
+// one example is set correctly.
+func TestSetOperationResponseExample(t *testing.T) {
+	g := gen(t)
+	op := &Operation{
+		Responses: make(Responses),
+	}
+
+	error1 := map[string]interface{}{"error": "message1"}
+
+	err := g.setOperationResponse(op, reflect.TypeOf(new(string)), "400", "application/json", "", nil, error1, nil)
+	assert.Nil(t, err)
+
+	// assert example set correctly
+	mt := op.Responses["400"].Response.Content["application/json"].MediaType
+	assert.Equal(t, error1, mt.Example)
+
+	// examples should be empty
+	assert.Nil(t, mt.Examples)
+}
+
+// TestSetOperationResponseExamples tests that
+// multiple examples are set correctly.
+func TestSetOperationResponseExamples(t *testing.T) {
+	g := gen(t)
+	op := &Operation{
+		Responses: make(Responses),
+	}
+
+	error1 := map[string]interface{}{"error": "message1"}
+	error2 := map[string]interface{}{"error": "message2"}
+
+	err := g.setOperationResponse(op, reflect.TypeOf(new(string)), "400", "application/json", "", nil, nil,
+		map[string]interface{}{
+			"one": error1,
+			"two": error2,
+		},
+	)
+	assert.Nil(t, err)
+
+	// assert examples set correctly
+	mt := op.Responses["400"].Response.Content["application/json"].MediaType
+	assert.Equal(t, 2, len(mt.Examples))
+	assert.Equal(t, error1, mt.Examples["one"].Example.Value)
+	assert.Equal(t, error2, mt.Examples["two"].Example.Value)
+
+	// example should be empty
+	assert.Nil(t, mt.Example)
 }
 
 // TestSetOperationParamsError tests the various error

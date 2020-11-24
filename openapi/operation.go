@@ -11,7 +11,7 @@ type OperationInfo struct {
 	Description       string
 	Deprecated        bool
 	InputModel        interface{}
-	Responses         []*OperationReponse
+	Responses         []*OperationResponse
 }
 
 // ResponseHeader represents a single header that
@@ -22,13 +22,15 @@ type ResponseHeader struct {
 	Model       interface{}
 }
 
-// OperationReponse represents a single response of an
+// OperationResponse represents a single response of an
 // API operation.
-type OperationReponse struct {
+type OperationResponse struct {
 	// The response code can be "default"
 	// according to OAS3 spec.
 	Code        string
 	Description string
 	Model       interface{}
 	Headers     []*ResponseHeader
+	Example     interface{}
+	Examples    map[string]interface{}
 }
