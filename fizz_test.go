@@ -228,6 +228,11 @@ type testInputModel struct {
 	QueryParam string `query:"q"`
 }
 
+type testInputModel2 struct {
+	C       string `path:"c"`
+	Message string `json:"message" description:"A short message"`
+}
+
 // TestSpecHandler tests that the OpenAPI handler
 // return the spec properly marshaled in JSON.
 func TestSpecHandler(t *testing.T) {
@@ -272,6 +277,18 @@ func TestSpecHandler(t *testing.T) {
 		Description: `This is a test server.`,
 		Version:     "1.0.0",
 	}
+
+	fizz.POST("/test/:c",
+		[]OperationOption{
+			ID("PostTest"),
+			StatusDescription("201"),
+			StatusDescription("Created"),
+		},
+		tonic.Handler(func(c *gin.Context, in *testInputModel2) error {
+			return nil
+		}, 201),
+	)
+
 	servers := []*openapi.Server{
 		&openapi.Server{
 			URL:         "https://foo.bar/{basePath}",

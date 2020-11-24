@@ -96,7 +96,48 @@
                     }
                 }
             }
+        },
+        "/test/{c}": {
+            "post": {
+                "operationId": "PostTest",
+                "parameters": [
+                    {
+                        "name": "c",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PostTestInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
         }
     },
-    "components": {}
+    "components": {
+        "schemas": {
+            "PostTestInput": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "A short message"
+                    }
+                }
+            }
+        }
+    }
 }
