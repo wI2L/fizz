@@ -9,16 +9,18 @@ type OpenAPI struct {
 	Paths      Paths       `json:"paths" yaml:"paths"`
 	Components *Components `json:"components,omitempty" yaml:"components,omitempty"`
 	Tags       []*Tag      `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Security   []*Security `json:"security,omitempty" yaml:"security,omitempty"`
 }
 
 // Components holds a set of reusable objects for different
 // ascpects of the specification.
 type Components struct {
-	Schemas    map[string]*SchemaOrRef    `json:"schemas,omitempty" yaml:"schemas,omitempty"`
-	Responses  map[string]*ResponseOrRef  `json:"responses,omitempty" yaml:"responses,omitempty"`
-	Parameters map[string]*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-	Examples   map[string]*ExampleOrRef   `json:"examples,omitempty" yaml:"examples,omitempty"`
-	Headers    map[string]*HeaderOrRef    `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Schemas         map[string]*SchemaOrRef     `json:"schemas,omitempty" yaml:"schemas,omitempty"`
+	Responses       map[string]*ResponseOrRef   `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Parameters      map[string]*ParameterOrRef  `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Examples        map[string]*ExampleOrRef    `json:"examples,omitempty" yaml:"examples,omitempty"`
+	Headers         map[string]*HeaderOrRef     `json:"headers,omitempty" yaml:"headers,omitempty"`
+	SecuritySchemes map[string]*SecuritySchemes `json:"securitySchemes,omitempty" yaml:"securitySchemes,omitempty"`
 }
 
 // Info represents the metadata of an API.
@@ -191,6 +193,7 @@ type Operation struct {
 	Responses   Responses         `json:"responses,omitempty" yaml:"responses,omitempty"`
 	Deprecated  bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	Servers     []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Security    []*Security       `json:"security,omitempty" yaml:"security,omitempty"`
 }
 
 // Responses represents a container for the expected responses
@@ -304,4 +307,25 @@ type Encoding struct {
 type Tag struct {
 	Name        string `json:"name" yaml:"name"`
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+}
+
+type SecuritySchemes struct {
+	Type             string                 `json:"type,omitempty" yaml:"type,omitempty"`
+	Scheme           string                 `json:"scheme,omitempty" yaml:"scheme,omitempty"`
+	Description      string                 `json:"description,omitempty" yaml:"description,omitempty"`
+	In               string                 `json:"in,omitempty" yaml:"in,omitempty"`
+	Name             string                 `json:"name,omitempty" yaml:"name,omitempty"`
+	OpenIdConnectUrl string                 `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
+	Flows            map[string]*OAuthFlows `json:"flows,omitempty" yaml:"flows,omitempty"`
+}
+
+type OAuthFlows struct {
+	AuthorizationURL string            `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
+	TokenUrl         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
+	RefreshUrl       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
+	Scopes           map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
+}
+
+type Security struct {
+	Scopes map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 }
