@@ -98,6 +98,16 @@ fizz.Header(name, desc string, model interface{})
 // Override the binding model of the operation.
 fizz.InputModel(model interface{})
 
+// Overrides the top-level security requirement of an operation.
+// Note that this function can be used more than once to add several requirements.
+fizz.Security(security *openapi.SecurityRequirement)
+
+// Add an empty security requirement to this operation to make other security requirements optional.
+fizz.WithOptionalSecurity()
+
+// Remove any top-level security requirements for this operation.
+fizz.WithoutSecurity()
+
 // Add a Code Sample to the operation.
 fizz.XCodeSample(codeSample *XCodeSample)
 ```
@@ -319,6 +329,7 @@ Fizz supports some native and imported types. A schema with a proper type and fo
 * [`time.Duration`](https://golang.org/pkg/time/#Duration)
 * [`net.URL`](https://golang.org/pkg/net/url/#URL)
 * [`net.IP`](https://golang.org/pkg/net/#IP)
+
 Note that, according to the doc, the inherent version of the address is a semantic property, and thus cannot be determined by Fizz. Therefore, the format returned is simply `ip`. If you want to specify the version, you can use the tags `format:"ipv4"` or `format:"ipv6"`.
 * [`uuid.UUID`](https://godoc.org/github.com/gofrs/uuid#UUID)
 

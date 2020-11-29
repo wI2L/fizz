@@ -1,25 +1,28 @@
 package openapi
 
+import "encoding/json"
+
 // OpenAPI represents the root document object of
 // an OpenAPI document.
 type OpenAPI struct {
-	OpenAPI    string       `json:"openapi" yaml:"openapi"`
-	Info       *Info        `json:"info" yaml:"info"`
-	Servers    []*Server    `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Paths      Paths        `json:"paths" yaml:"paths"`
-	Components *Components  `json:"components,omitempty" yaml:"components,omitempty"`
-	Tags       []*Tag       `json:"tags,omitempty" yaml:"tags,omitempty"`
-	XTagGroups []*XTagGroup `json:"x-tagGroups,omitempty" yaml:"x-tagGroups,omitempty"`
+	OpenAPI    string               `json:"openapi" yaml:"openapi"`
+	Info       *Info                `json:"info" yaml:"info"`
+	Servers    []*Server            `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Paths      Paths                `json:"paths" yaml:"paths"`
+	Components *Components          `json:"components,omitempty" yaml:"components,omitempty"`
+	Tags       []*Tag               `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Security   *SecurityRequirement `json:"security,omitempty" yaml:"security,omitempty"`
 }
 
 // Components holds a set of reusable objects for different
 // ascpects of the specification.
 type Components struct {
-	Schemas    map[string]*SchemaOrRef    `json:"schemas,omitempty" yaml:"schemas,omitempty"`
-	Responses  map[string]*ResponseOrRef  `json:"responses,omitempty" yaml:"responses,omitempty"`
-	Parameters map[string]*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-	Examples   map[string]*ExampleOrRef   `json:"examples,omitempty" yaml:"examples,omitempty"`
-	Headers    map[string]*HeaderOrRef    `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Schemas         map[string]*SchemaOrRef         `json:"schemas,omitempty" yaml:"schemas,omitempty"`
+	Responses       map[string]*ResponseOrRef       `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Parameters      map[string]*ParameterOrRef      `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Examples        map[string]*ExampleOrRef        `json:"examples,omitempty" yaml:"examples,omitempty"`
+	Headers         map[string]*HeaderOrRef         `json:"headers,omitempty" yaml:"headers,omitempty"`
+	SecuritySchemes map[string]*SecuritySchemeOrRef `json:"securitySchemes,omitempty" yaml:"securitySchemes,omitempty"`
 }
 
 // Info represents the metadata of an API.
@@ -184,6 +187,22 @@ type Schema struct {
 
 // Operation describes an API operation on a path.
 type Operation struct {
+	Tags         []string               `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Summary      string                 `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Description  string                 `json:"description,omitempty" yaml:"description,omitempty"`
+	ID           string                 `json:"operationId,omitempty" yaml:"operationId,omitempty"`
+	Parameters   []*ParameterOrRef      `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	RequestBody  *RequestBody           `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
+	Responses    Responses              `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Deprecated   bool                   `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+	Servers      []*Server              `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Security     []*SecurityRequirement `json:"security" yaml:"security"`
+	XCodeSamples []*XCodeSample         `json:"x-codeSamples,omitempty" yaml:"x-codeSamples,omitempty"`
+}
+
+// A workaround for missing omitnil functionality.
+// Explicitely omit the Security field from marshaling when it is nil, but not when empty.
+type operationNilOmitted struct {
 	Tags         []string          `json:"tags,omitempty" yaml:"tags,omitempty"`
 	Summary      string            `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description  string            `json:"description,omitempty" yaml:"description,omitempty"`
@@ -194,6 +213,38 @@ type Operation struct {
 	Deprecated   bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	Servers      []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
 	XCodeSamples []*XCodeSample    `json:"x-codeSamples,omitempty" yaml:"x-codeSamples,omitempty"`
+}
+
+// MarshalYAML implements yaml.Marshaler for Operation.
+// Needed to marshall empty but non-null SecurityRequirements.
+func (o *Operation) MarshalYAML() (interface{}, error) {
+	if o.Security == nil {
+		return omitOperationNilFields(o), nil
+	}
+	return o, nil
+}
+
+// MarshalJSON excludes empty but non-null SecurityRequirements.
+func (o *Operation) MarshalJSON() ([]byte, error) {
+	if o.Security == nil {
+		return json.Marshal(omitOperationNilFields(o))
+	}
+	return json.Marshal(*o)
+}
+
+func omitOperationNilFields(o *Operation) *operationNilOmitted {
+	return &operationNilOmitted{
+		Tags:         o.Tags,
+		Summary:      o.Summary,
+		Description:  o.Description,
+		ID:           o.ID,
+		Parameters:   o.Parameters,
+		RequestBody:  o.RequestBody,
+		Responses:    o.Responses,
+		Deprecated:   o.Deprecated,
+		Servers:      o.Servers,
+		XCodeSamples: o.XCodeSamples,
+	}
 }
 
 // Responses represents a container for the expected responses
@@ -309,7 +360,53 @@ type Tag struct {
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
-// XLogo represents the information about the x-logo extension
+// SecuritySchemeOrRef represents a SecurityScheme that can be inlined
+// or referenced in the API description.
+type SecuritySchemeOrRef struct {
+	*SecurityScheme
+	*Reference
+}
+
+// MarshalYAML implements yaml.Marshaler for SecuritySchemeOrRef.
+func (sor *SecuritySchemeOrRef) MarshalYAML() (interface{}, error) {
+	if sor.SecurityScheme != nil {
+		return sor.SecurityScheme, nil
+	}
+	return sor.Reference, nil
+}
+
+// SecurityScheme represents a security scheme that can be used by an operation.
+type SecurityScheme struct {
+	Type             string      `json:"type,omitempty" yaml:"type,omitempty"`
+	Scheme           string      `json:"scheme,omitempty" yaml:"scheme,omitempty"`
+	BearerFormat     string      `json:"bearerFormat,omitempty" yaml:"bearerFormat,omitempty"`
+	Description      string      `json:"description,omitempty" yaml:"description,omitempty"`
+	In               string      `json:"in,omitempty" yaml:"in,omitempty"`
+	Name             string      `json:"name,omitempty" yaml:"name,omitempty"`
+	OpenIDConnectURL string      `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
+	Flows            *OAuthFlows `json:"flows,omitempty" yaml:"flows,omitempty"`
+}
+
+// OAuthFlows represents all the supported OAuth flows.
+type OAuthFlows struct {
+	Implicit          *OAuthFlow `json:"implicit,omitempty" yaml:"implicit,omitempty"`
+	Password          *OAuthFlow `json:"password,omitempty" yaml:"password,omitempty"`
+	ClientCredentials *OAuthFlow `json:"clientCredentials,omitempty" yaml:"clientCredentials,omitempty"`
+	AuthorizationCode *OAuthFlow `json:"authorizationCode,omitempty" yaml:"authorizationCode,omitempty"`
+}
+
+// OAuthFlow represents an OAuth security scheme.
+type OAuthFlow struct {
+	AuthorizationURL string            `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
+	TokenURL         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
+	RefreshURL       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
+	Scopes           map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
+}
+
+// SecurityRequirement represents the security object in the API specification.
+type SecurityRequirement map[string][]string
+
+// XLogo represents the information about the x-logo extension.
 // See: https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md#x-logo
 type XLogo struct {
 	URL             string `json:"url,omitempty" yaml:"url,omitempty"`
@@ -318,14 +415,14 @@ type XLogo struct {
 	Href            string `json:"href,omitempty" yaml:"href,omitempty"`
 }
 
-// XTagGroup represents the information about the x-tagGroups extension
+// XTagGroup represents the information about the x-tagGroups extension.
 // See: https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md#x-taggroups
 type XTagGroup struct {
 	Name string   `json:"name,omitempty" yaml:"name,omitempty"`
 	Tags []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
-// XCodeSample represents the information about the x-codeSample extension
+// XCodeSample represents the information about the x-codeSample extension.
 // See: https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md#x-codesamples
 type XCodeSample struct {
 	Lang   string `json:"lang,omitempty" yaml:"lang,omitempty"`

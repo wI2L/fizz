@@ -360,6 +360,29 @@ func XCodeSample(cs *openapi.XCodeSample) func(*openapi.OperationInfo) {
 	}
 }
 
+// Overrides top-level security requirement for this operation.
+// Note that this function can be used more than once to add several requirements.
+func Security(security *openapi.SecurityRequirement) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.Security = append(o.Security, security)
+	}
+}
+
+// Add an empty security requirement to this operation to make other security requirements optional.
+func WithOptionalSecurity() func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		var emptyRequirement openapi.SecurityRequirement = make(openapi.SecurityRequirement)
+		o.Security = append(o.Security, &emptyRequirement)
+	}
+}
+
+// Remove any top-level security requirements for this operation.
+func WithoutSecurity() func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.Security = []*openapi.SecurityRequirement{}
+	}
+}
+
 // OperationFromContext returns the OpenAPI operation from
 // the givent Gin context or an error if none is found.
 func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
