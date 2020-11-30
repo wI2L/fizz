@@ -3,24 +3,24 @@ package openapi
 // OpenAPI represents the root document object of
 // an OpenAPI document.
 type OpenAPI struct {
-	OpenAPI    string      `json:"openapi" yaml:"openapi"`
-	Info       *Info       `json:"info" yaml:"info"`
-	Servers    []*Server   `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Paths      Paths       `json:"paths" yaml:"paths"`
-	Components *Components `json:"components,omitempty" yaml:"components,omitempty"`
-	Tags       []*Tag      `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Security   []*Security `json:"security,omitempty" yaml:"security,omitempty"`
+	OpenAPI    string                 `json:"openapi" yaml:"openapi"`
+	Info       *Info                  `json:"info" yaml:"info"`
+	Servers    []*Server              `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Paths      Paths                  `json:"paths" yaml:"paths"`
+	Components *Components            `json:"components,omitempty" yaml:"components,omitempty"`
+	Tags       []*Tag                 `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Security   map[string]interface{} `json:"security,omitempty" yaml:"security,omitempty"`
 }
 
 // Components holds a set of reusable objects for different
 // ascpects of the specification.
 type Components struct {
-	Schemas         map[string]*SchemaOrRef     `json:"schemas,omitempty" yaml:"schemas,omitempty"`
-	Responses       map[string]*ResponseOrRef   `json:"responses,omitempty" yaml:"responses,omitempty"`
-	Parameters      map[string]*ParameterOrRef  `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-	Examples        map[string]*ExampleOrRef    `json:"examples,omitempty" yaml:"examples,omitempty"`
-	Headers         map[string]*HeaderOrRef     `json:"headers,omitempty" yaml:"headers,omitempty"`
-	SecuritySchemes map[string]*SecuritySchemes `json:"securitySchemes,omitempty" yaml:"securitySchemes,omitempty"`
+	Schemas         map[string]*SchemaOrRef         `json:"schemas,omitempty" yaml:"schemas,omitempty"`
+	Responses       map[string]*ResponseOrRef       `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Parameters      map[string]*ParameterOrRef      `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Examples        map[string]*ExampleOrRef        `json:"examples,omitempty" yaml:"examples,omitempty"`
+	Headers         map[string]*HeaderOrRef         `json:"headers,omitempty" yaml:"headers,omitempty"`
+	SecuritySchemes map[string]*SecuritySchemeOrRef `json:"securitySchemes,omitempty" yaml:"securitySchemes,omitempty"`
 }
 
 // Info represents the metadata of an API.
@@ -309,23 +309,34 @@ type Tag struct {
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
-type SecuritySchemes struct {
+// SecuritySchemeOrRef represents an SecurityScheme that can be inlined
+// or referenced in the API description.
+type SecuritySchemeOrRef struct {
+	*SecurityScheme
+	*Reference
+}
+
+// SecurityScheme represents how the API is secured
+type SecurityScheme struct {
 	Type             string                 `json:"type,omitempty" yaml:"type,omitempty"`
 	Scheme           string                 `json:"scheme,omitempty" yaml:"scheme,omitempty"`
+	BearerFormat     string                 `json:"bearerFormat,omitempty" yaml:"bearerFormat,omitempty"`
 	Description      string                 `json:"description,omitempty" yaml:"description,omitempty"`
 	In               string                 `json:"in,omitempty" yaml:"in,omitempty"`
 	Name             string                 `json:"name,omitempty" yaml:"name,omitempty"`
-	OpenIdConnectUrl string                 `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
+	OpenIDConnectURL string                 `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
 	Flows            map[string]*OAuthFlows `json:"flows,omitempty" yaml:"flows,omitempty"`
 }
 
+// OAuthFlows represents the data required to define an OAuth security scheme.
 type OAuthFlows struct {
 	AuthorizationURL string            `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
-	TokenUrl         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
-	RefreshUrl       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
+	TokenURL         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
+	RefreshURL       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
 	Scopes           map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 }
 
+// Security represents the scopes defining permissions required to use API.
 type Security struct {
 	Scopes map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 }
