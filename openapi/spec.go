@@ -3,13 +3,13 @@ package openapi
 // OpenAPI represents the root document object of
 // an OpenAPI document.
 type OpenAPI struct {
-	OpenAPI    string                 `json:"openapi" yaml:"openapi"`
-	Info       *Info                  `json:"info" yaml:"info"`
-	Servers    []*Server              `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Paths      Paths                  `json:"paths" yaml:"paths"`
-	Components *Components            `json:"components,omitempty" yaml:"components,omitempty"`
-	Tags       []*Tag                 `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Security   map[string]interface{} `json:"security,omitempty" yaml:"security,omitempty"`
+	OpenAPI    string               `json:"openapi" yaml:"openapi"`
+	Info       *Info                `json:"info" yaml:"info"`
+	Servers    []*Server            `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Paths      Paths                `json:"paths" yaml:"paths"`
+	Components *Components          `json:"components,omitempty" yaml:"components,omitempty"`
+	Tags       []*Tag               `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Security   *SecurityRequirement `json:"security,omitempty" yaml:"security,omitempty"`
 }
 
 // Components holds a set of reusable objects for different
@@ -309,7 +309,7 @@ type Tag struct {
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
-// SecuritySchemeOrRef represents an SecurityScheme that can be inlined
+// SecuritySchemeOrRef represents a SecurityScheme that can be inlined
 // or referenced in the API description.
 type SecuritySchemeOrRef struct {
 	*SecurityScheme
@@ -325,16 +325,19 @@ type SecurityScheme struct {
 	In               string                 `json:"in,omitempty" yaml:"in,omitempty"`
 	Name             string                 `json:"name,omitempty" yaml:"name,omitempty"`
 	OpenIDConnectURL string                 `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
-	Flows            map[string]*OAuthFlows `json:"flows,omitempty" yaml:"flows,omitempty"`
+	Flows            map[string]*OAuthFlow `json:"flows,omitempty" yaml:"flows,omitempty"`
 }
 
-// OAuthFlows represents the data required to define an OAuth security scheme.
-type OAuthFlows struct {
+// OAuthFlow represents the data required to define an OAuth security scheme.
+type OAuthFlow struct {
 	AuthorizationURL string            `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
 	TokenURL         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
 	RefreshURL       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
 	Scopes           map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 }
+
+// SecurityRequirement represents the security object in the API specification.
+type SecurityRequirement map[string][]string
 
 // Security represents the scopes defining permissions required to use API.
 type Security struct {
