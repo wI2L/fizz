@@ -318,14 +318,22 @@ type SecuritySchemeOrRef struct {
 
 // SecurityScheme represents how the API is secured
 type SecurityScheme struct {
-	Type             string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Scheme           string                 `json:"scheme,omitempty" yaml:"scheme,omitempty"`
-	BearerFormat     string                 `json:"bearerFormat,omitempty" yaml:"bearerFormat,omitempty"`
-	Description      string                 `json:"description,omitempty" yaml:"description,omitempty"`
-	In               string                 `json:"in,omitempty" yaml:"in,omitempty"`
-	Name             string                 `json:"name,omitempty" yaml:"name,omitempty"`
-	OpenIDConnectURL string                 `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
-	Flows            map[string]*OAuthFlow `json:"flows,omitempty" yaml:"flows,omitempty"`
+	Type             string      `json:"type,omitempty" yaml:"type,omitempty"`
+	Scheme           string      `json:"scheme,omitempty" yaml:"scheme,omitempty"`
+	BearerFormat     string      `json:"bearerFormat,omitempty" yaml:"bearerFormat,omitempty"`
+	Description      string      `json:"description,omitempty" yaml:"description,omitempty"`
+	In               string      `json:"in,omitempty" yaml:"in,omitempty"`
+	Name             string      `json:"name,omitempty" yaml:"name,omitempty"`
+	OpenIDConnectURL string      `json:"openIdConnectUrl,omitempty" yaml:"openIdConnectUrl,omitempty"`
+	Flows            *OAuthFlows `json:"flows,omitempty" yaml:"flows,omitempty"`
+}
+
+// OAuthFlows represents all the supported OAuth flows
+type OAuthFlows struct {
+	Implicit          *OAuthFlow `json:"implicit,omitempty" yaml:"implicit,omitempty"`
+	Password          *OAuthFlow `json:"password,omitempty" yaml:"password,omitempty"`
+	ClientCredentials *OAuthFlow `json:"clientCredentials,omitempty" yaml:"clientCredentials,omitempty"`
+	AuthorizationCode *OAuthFlow `json:"authorizationCode,omitempty" yaml:"authorizationCode,omitempty"`
 }
 
 // OAuthFlow represents the data required to define an OAuth security scheme.
