@@ -353,6 +353,13 @@ func InputModel(model interface{}) func(*openapi.OperationInfo) {
 	}
 }
 
+// Security adds a security definition to an operation.
+func Security(security map[string][]string) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.Security = security
+	}
+}
+
 // OperationFromContext returns the OpenAPI operation from
 // the givent Gin context or an error if none is found.
 func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {

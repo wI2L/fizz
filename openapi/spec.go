@@ -184,16 +184,16 @@ type Schema struct {
 
 // Operation describes an API operation on a path.
 type Operation struct {
-	Tags        []string          `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Summary     string            `json:"summary,omitempty" yaml:"summary,omitempty"`
-	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
-	ID          string            `json:"operationId,omitempty" yaml:"operationId,omitempty"`
-	Parameters  []*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-	RequestBody *RequestBody      `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
-	Responses   Responses         `json:"responses,omitempty" yaml:"responses,omitempty"`
-	Deprecated  bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
-	Servers     []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Security    []*Security       `json:"security,omitempty" yaml:"security,omitempty"`
+	Tags        []string             `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Summary     string               `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Description string               `json:"description,omitempty" yaml:"description,omitempty"`
+	ID          string               `json:"operationId,omitempty" yaml:"operationId,omitempty"`
+	Parameters  []*ParameterOrRef    `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	RequestBody *RequestBody         `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
+	Responses   Responses            `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Deprecated  bool                 `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+	Servers     []*Server            `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Security    *SecurityRequirement `json:"security,omitempty" yaml:"security,omitempty"`
 }
 
 // Responses represents a container for the expected responses
@@ -346,8 +346,3 @@ type OAuthFlow struct {
 
 // SecurityRequirement represents the security object in the API specification.
 type SecurityRequirement map[string][]string
-
-// Security represents the scopes defining permissions required to use API.
-type Security struct {
-	Scopes map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
-}
