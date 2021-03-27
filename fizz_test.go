@@ -229,8 +229,9 @@ type testInputModel struct {
 }
 
 type testInputModel2 struct {
-	C       string `path:"c"`
-	Message string `json:"message" description:"A short message"`
+	C        string      `path:"c"`
+	Message  string      `json:"message" description:"A short message"`
+	AnyValue interface{} `json:"value" description:"A nullable value of arbitrary type"`
 }
 
 // TestSpecHandler tests that the OpenAPI handler

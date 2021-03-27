@@ -15,11 +15,12 @@ var (
 	tofDataType = reflect.TypeOf((*DataType)(nil)).Elem()
 
 	// Native.
-	tofTime      = reflect.TypeOf(time.Time{})
-	tofDuration  = reflect.TypeOf(time.Duration(0))
-	tofByteSlice = reflect.TypeOf([]byte{})
-	tofNetIP     = reflect.TypeOf(net.IP{})
-	tofNetURL    = reflect.TypeOf(url.URL{})
+	tofTime           = reflect.TypeOf(time.Time{})
+	tofDuration       = reflect.TypeOf(time.Duration(0))
+	tofByteSlice      = reflect.TypeOf([]byte{})
+	tofNetIP          = reflect.TypeOf(net.IP{})
+	tofNetURL         = reflect.TypeOf(url.URL{})
+	tofEmptyInterface = reflect.TypeOf(new(interface{})).Elem()
 
 	// Imported.
 	tofUUID = reflect.TypeOf(uuid.UUID{})
@@ -73,6 +74,7 @@ const (
 	TypeIP
 	TypeURL
 	TypePassword
+	TypeAny
 
 	// TypeComplex represents non-primitive types like
 	// Go struct, for which a schema must be generated.
@@ -134,6 +136,8 @@ func DataTypeFromType(t reflect.Type) DataType {
 		return TypeIP
 	case tofNetURL:
 		return TypeURL
+	case tofEmptyInterface:
+		return TypeAny
 	}
 	// Treat imported types.
 	if dt := isImportedType(t); dt != nil {

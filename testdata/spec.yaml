@@ -106,3 +106,6 @@ components:
         message:
           type: string
           description: "A short message"
+        value:
+          description: "A nullable value of arbitrary type"
+          nullable: true
