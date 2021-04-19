@@ -875,6 +875,14 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 			return g.newSchemaFromStruct(t)
 		}
 	}
+	if dt == TypeAny {
+		return &SchemaOrRef{
+			Schema: &Schema{
+				Nullable:    true,
+				Description: "Value of any type, including null",
+			},
+		}
+	}
 	schema := &Schema{
 		Type:     dt.Type(),
 		Format:   dt.Format(),
