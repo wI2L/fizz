@@ -3,12 +3,13 @@ package openapi
 // OpenAPI represents the root document object of
 // an OpenAPI document.
 type OpenAPI struct {
-	OpenAPI    string      `json:"openapi" yaml:"openapi"`
-	Info       *Info       `json:"info" yaml:"info"`
-	Servers    []*Server   `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Paths      Paths       `json:"paths" yaml:"paths"`
-	Components *Components `json:"components,omitempty" yaml:"components,omitempty"`
-	Tags       []*Tag      `json:"tags,omitempty" yaml:"tags,omitempty"`
+	OpenAPI    string       `json:"openapi" yaml:"openapi"`
+	Info       *Info        `json:"info" yaml:"info"`
+	Servers    []*Server    `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Paths      Paths        `json:"paths" yaml:"paths"`
+	Components *Components  `json:"components,omitempty" yaml:"components,omitempty"`
+	Tags       []*Tag       `json:"tags,omitempty" yaml:"tags,omitempty"`
+	XTagGroups []*XTagGroup `json:"x-tagGroups,omitempty" yaml:"x-tagGroups,omitempty"`
 }
 
 // Components holds a set of reusable objects for different
@@ -29,6 +30,7 @@ type Info struct {
 	Contact        *Contact `json:"contact,omitempty" yaml:"contact,omitempty"`
 	License        *License `json:"license,omitempty" yaml:"license,omitempty"`
 	Version        string   `json:"version" yaml:"version"`
+	XLogo          *XLogo   `json:"x-logo,omitempty" yaml:"x-logo,omitempty"`
 }
 
 // Contact represents the the contact informations
@@ -182,15 +184,16 @@ type Schema struct {
 
 // Operation describes an API operation on a path.
 type Operation struct {
-	Tags        []string          `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Summary     string            `json:"summary,omitempty" yaml:"summary,omitempty"`
-	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
-	ID          string            `json:"operationId,omitempty" yaml:"operationId,omitempty"`
-	Parameters  []*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-	RequestBody *RequestBody      `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
-	Responses   Responses         `json:"responses,omitempty" yaml:"responses,omitempty"`
-	Deprecated  bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
-	Servers     []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Tags         []string          `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Summary      string            `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Description  string            `json:"description,omitempty" yaml:"description,omitempty"`
+	ID           string            `json:"operationId,omitempty" yaml:"operationId,omitempty"`
+	Parameters   []*ParameterOrRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	RequestBody  *RequestBody      `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
+	Responses    Responses         `json:"responses,omitempty" yaml:"responses,omitempty"`
+	Deprecated   bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+	Servers      []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
+	XCodeSamples []*XCodeSample    `json:"x-codeSamples,omitempty" yaml:"x-codeSamples,omitempty"`
 }
 
 // Responses represents a container for the expected responses
@@ -304,4 +307,28 @@ type Encoding struct {
 type Tag struct {
 	Name        string `json:"name" yaml:"name"`
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+}
+
+// XLogo represents the information about the x-logo extension
+// See: https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md#x-logo
+type XLogo struct {
+	URL             string `json:"url,omitempty" yaml:"url,omitempty"`
+	BackgroundColor string `json:"backgroundColor,omitempty" yaml:"backgroundColor,omitempty"`
+	AltText         string `json:"altText,omitempty" yaml:"altText,omitempty"`
+	Href            string `json:"href,omitempty" yaml:"href,omitempty"`
+}
+
+// XTagGroup represents the information about the x-tagGroups extension
+// See: https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md#x-taggroups
+type XTagGroup struct {
+	Name string   `json:"name,omitempty" yaml:"name,omitempty"`
+	Tags []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+}
+
+// XCodeSample represents the information about the x-codeSample extension
+// See: https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md#x-codesamples
+type XCodeSample struct {
+	Lang   string `json:"lang,omitempty" yaml:"lang,omitempty"`
+	Label  string `json:"label,omitempty" yaml:"label,omitempty"`
+	Source string `json:"source,omitempty" yaml:"source,omitempty"`
 }

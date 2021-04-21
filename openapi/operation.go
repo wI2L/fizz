@@ -12,6 +12,7 @@ type OperationInfo struct {
 	Deprecated        bool
 	InputModel        interface{}
 	Responses         []*OperationResponse
+	XCodeSamples      []*XCodeSample
 }
 
 // ResponseHeader represents a single header that

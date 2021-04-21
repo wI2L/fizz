@@ -353,6 +353,13 @@ func InputModel(model interface{}) func(*openapi.OperationInfo) {
 	}
 }
 
+// XCodeSample adds a code sample to the operation.
+func XCodeSample(cs *openapi.XCodeSample) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.XCodeSamples = append(o.XCodeSamples, cs)
+	}
+}
+
 // OperationFromContext returns the OpenAPI operation from
 // the givent Gin context or an error if none is found.
 func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
