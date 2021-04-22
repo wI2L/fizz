@@ -95,6 +95,9 @@ fizz.Header(name, desc string, model interface{})
 
 // Override the binding model of the operation.
 fizz.InputModel(model interface{})
+
+// Add a Code Sample to the operation.
+fizz.XCodeSample(codeSample *XCodeSample)
 ```
 
 **NOTES:**

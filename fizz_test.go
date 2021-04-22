@@ -266,6 +266,11 @@ func TestSpecHandler(t *testing.T) {
 				"one": "message1",
 				"two": "message2",
 			}),
+			XCodeSample(&openapi.XCodeSample{
+				Lang:   "Shell",
+				Label:  "v4.4",
+				Source: "curl http://0.0.0.0:8080",
+			}),
 		},
 		tonic.Handler(func(c *gin.Context) error {
 			return nil
