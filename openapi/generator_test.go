@@ -232,14 +232,16 @@ func TestNewSchemaFromStructFieldExampleValues(t *testing.T) {
 	g := gen(t)
 
 	type T struct {
-		A    string   `example:"value"`
-		APtr *string  `example:"value"`
-		B    int      `example:"1"`
-		BPrt *int     `example:"1"`
-		C    float64  `example:"0.1"`
-		CPtr *float64 `example:"0.1"`
-		D    bool     `example:"true"`
-		DPtr *bool    `example:"true"`
+		A    string    `example:"value"`
+		APtr *string   `example:"value"`
+		B    int       `example:"1"`
+		BPtr *int      `example:"1"`
+		C    float64   `example:"0.1"`
+		CPtr *float64  `example:"0.1"`
+		D    bool      `example:"true"`
+		DPtr *bool     `example:"true"`
+		EPtr **bool    `example:"false"`
+		FPtr ***uint16 `example:"128"`
 	}
 	typ := reflect.TypeOf(T{})
 
@@ -282,6 +284,16 @@ func TestNewSchemaFromStructFieldExampleValues(t *testing.T) {
 	sor = g.newSchemaFromStructField(typ.Field(7), false, "DPtr", typ)
 	assert.NotNil(t, sor)
 	assert.Equal(t, true, sor.Example)
+
+	// Field EPtr contains a double-pointer to boolean example.
+	sor = g.newSchemaFromStructField(typ.Field(8), false, "EPtr", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, false, sor.Example)
+
+	// Field FPtr contains a triple-pointer to uint16 value example.
+	sor = g.newSchemaFromStructField(typ.Field(9), false, "FPtr", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, uint16(128), sor.Example)
 }
 
 // TestNewSchemaFromStructFieldErrors tests the errors
@@ -389,23 +401,23 @@ func TestAddOperation(t *testing.T) {
 		Description: "XYZ",
 		Deprecated:  true,
 		Responses: []*OperationResponse{
-			&OperationResponse{
+			{
 				Code:        "400",
 				Description: "Bad Request",
 				Model:       CustomError{},
 			},
-			&OperationResponse{
+			{
 				Code:        "5XX",
 				Description: "Server Errors",
 			},
 		},
 		Headers: []*ResponseHeader{
-			&ResponseHeader{
+			{
 				Name:        "X-Test-Header",
 				Description: "Test header",
 				Model:       Header,
 			},
-			&ResponseHeader{
+			{
 				Name:        "X-Test-Header-Alt",
 				Description: "Test header alt",
 			},
@@ -683,16 +695,22 @@ func TestSetServers(t *testing.T) {
 	g := gen(t)
 
 	servers := []*Server{
-		&Server{URL: "https://dev.api.foo.bar/v1", Description: "Development server"},
-		&Server{URL: "https://prod.api.foo.bar/{basePath}", Description: "Production server", Variables: map[string]*ServerVariable{
-			"basePath": &ServerVariable{
-				Description: "Version of the API",
-				Enum: []string{
-					"v1", "v2", "beta",
+		{
+			URL:         "https://dev.api.foo.bar/v1",
+			Description: "Development server",
+		},
+		{
+			URL:         "https://prod.api.foo.bar/{basePath}",
+			Description: "Production server",
+			Variables: map[string]*ServerVariable{
+				"basePath": {
+					Description: "Version of the API",
+					Enum: []string{
+						"v1", "v2", "beta",
+					},
+					Default: "v2",
 				},
-				Default: "v2",
-			},
-		}},
+			}},
 	}
 	g.SetServers(servers)
 
@@ -721,28 +739,28 @@ func TestGenerator_parseExampleValue(t *testing.T) {
 			"value",
 		},
 		{
-			"mapping to int",
-			reflect.TypeOf(1),
+			"mapping to int64",
+			reflect.TypeOf(int64(1)),
 			"1",
 			int64(1),
 		},
 		{
-			"mapping pointer to int",
-			reflect.PtrTo(reflect.TypeOf(1)),
+			"mapping pointer to int16",
+			reflect.PtrTo(reflect.TypeOf(int16(1))),
 			"1",
-			int64(1),
+			int16(1),
 		},
 		{
 			"mapping to uint8",
 			reflect.TypeOf(uint8(1)),
 			"1",
-			uint64(1),
+			uint8(1),
 		},
 		{
 			"mapping pointer to uint8",
 			reflect.PtrTo(reflect.TypeOf(uint8(1))),
 			"1",
-			uint64(1),
+			uint8(1),
 		},
 		{
 			"mapping to number",

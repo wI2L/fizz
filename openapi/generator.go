@@ -1235,9 +1235,35 @@ func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 	case reflect.String:
 		return value, nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.ParseInt(value, 10, t.Bits())
+		i, err := strconv.ParseInt(value, 10, t.Bits())
+		if err != nil {
+			return nil, err
+		}
+		switch t.Bits() {
+		case 8:
+			return int8(i), nil
+		case 16:
+			return int16(i), nil
+		case 32:
+			return int32(i), nil
+		default:
+		}
+		return i, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return strconv.ParseUint(value, 10, t.Bits())
+		u, err := strconv.ParseUint(value, 10, t.Bits())
+		if err != nil {
+			return nil, err
+		}
+		switch t.Bits() {
+		case 8:
+			return uint8(u), nil
+		case 16:
+			return uint16(u), nil
+		case 32:
+			return uint32(u), nil
+		default:
+		}
+		return u, nil
 	case reflect.Float32, reflect.Float64:
 		return strconv.ParseFloat(value, t.Bits())
 	case reflect.Ptr:
