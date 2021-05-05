@@ -1240,6 +1240,8 @@ func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 		return strconv.ParseUint(value, 10, t.Bits())
 	case reflect.Float32, reflect.Float64:
 		return strconv.ParseFloat(value, t.Bits())
+	case reflect.Ptr:
+		return parseExampleValue(t.Elem(), value)
 	default:
 		return nil, fmt.Errorf("unsuported type: %s", t.String())
 	}
