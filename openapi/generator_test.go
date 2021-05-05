@@ -3,6 +3,7 @@ package openapi
 import (
 	"encoding/json"
 	"io/ioutil"
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -127,6 +128,20 @@ func TestSchemaFromPrimitiveType(t *testing.T) {
 	assert.Equal(t, "integer", schema.Type)
 	assert.Equal(t, "int64", schema.Format)
 	assert.True(t, schema.Nullable)
+}
+
+// TestSchemaFromInterface tests that a schema
+// can be created for an interface{} value that
+// represent *any* type.
+func TestSchemaFromInterface(t *testing.T) {
+	g := gen(t)
+
+	schema := g.newSchemaFromType(tofEmptyInterface)
+	assert.NotNil(t, schema)
+	assert.Empty(t, schema.Type)
+	assert.Empty(t, schema.Format)
+	assert.True(t, schema.Nullable)
+	assert.NotEmpty(t, schema.Description)
 }
 
 // TestSchemaFromUnsupportedType tests that a schema
@@ -739,28 +754,100 @@ func TestGenerator_parseExampleValue(t *testing.T) {
 			"value",
 		},
 		{
-			"mapping to int64",
-			reflect.TypeOf(int64(1)),
-			"1",
-			int64(1),
+			"mapping to int8",
+			reflect.TypeOf(int8(math.MaxInt8)),
+			"127",
+			int8(math.MaxInt8),
+		},
+		{
+			"mapping pointer to int8",
+			reflect.PtrTo(reflect.TypeOf(int8(math.MaxInt8))),
+			"127",
+			int8(math.MaxInt8),
+		},
+		{
+			"mapping to int16",
+			reflect.TypeOf(int16(math.MaxInt16)),
+			"32767",
+			int16(math.MaxInt16),
 		},
 		{
 			"mapping pointer to int16",
-			reflect.PtrTo(reflect.TypeOf(int16(1))),
-			"1",
-			int16(1),
+			reflect.PtrTo(reflect.TypeOf(int16(math.MaxInt16))),
+			"32767",
+			int16(math.MaxInt16),
+		},
+		{
+			"mapping to int32",
+			reflect.TypeOf(int32(math.MaxInt32)),
+			"2147483647",
+			int32(math.MaxInt32),
+		},
+		{
+			"mapping pointer to int32",
+			reflect.PtrTo(reflect.TypeOf(int32(math.MaxInt32))),
+			"2147483647",
+			int32(math.MaxInt32),
+		},
+		{
+			"mapping to int64",
+			reflect.TypeOf(int64(math.MaxInt64)),
+			"9223372036854775807",
+			int64(math.MaxInt64),
+		},
+		{
+			"mapping pointer to int64",
+			reflect.PtrTo(reflect.TypeOf(int64(math.MaxInt64))),
+			"9223372036854775807",
+			int64(math.MaxInt64),
 		},
 		{
 			"mapping to uint8",
-			reflect.TypeOf(uint8(1)),
-			"1",
-			uint8(1),
+			reflect.TypeOf(uint8(math.MaxUint8)),
+			"255",
+			uint8(math.MaxUint8),
 		},
 		{
 			"mapping pointer to uint8",
-			reflect.PtrTo(reflect.TypeOf(uint8(1))),
-			"1",
-			uint8(1),
+			reflect.PtrTo(reflect.TypeOf(uint8(math.MaxUint8))),
+			"255",
+			uint8(math.MaxUint8),
+		},
+		{
+			"mapping to uint16",
+			reflect.TypeOf(uint16(math.MaxUint16)),
+			"65535",
+			uint16(math.MaxUint16),
+		},
+		{
+			"mapping pointer to uint16",
+			reflect.PtrTo(reflect.TypeOf(uint16(math.MaxUint16))),
+			"65535",
+			uint16(math.MaxUint16),
+		},
+		{
+			"mapping to uint32",
+			reflect.TypeOf(uint32(math.MaxUint32)),
+			"4294967295",
+			uint32(math.MaxUint32),
+		},
+		{
+			"mapping pointer to uint32",
+			reflect.PtrTo(reflect.TypeOf(uint32(math.MaxUint32))),
+			"4294967295",
+			uint32(math.MaxUint32),
+		},
+		{
+			"mapping to uint64",
+			reflect.TypeOf(uint64(math.MaxUint64)),
+			"18446744073709551615",
+			uint64(math.MaxUint64),
+		},
+		{
+			"mapping pointer to uint64",
+			reflect.PtrTo(reflect.TypeOf(uint64(math.MaxUint64))),
+			"18446744073709551615",
+			uint64(math.MaxUint64),
 		},
 		{
 			"mapping to number",
