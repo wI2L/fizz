@@ -11,11 +11,11 @@ import (
 // sort functions.
 func TestSortParams(t *testing.T) {
 	params := []*ParameterOrRef{
-		&ParameterOrRef{Parameter: &Parameter{Name: "Paz", In: "path"}},
-		&ParameterOrRef{Parameter: &Parameter{Name: "Baz", In: "header"}},
-		&ParameterOrRef{Parameter: &Parameter{Name: "Bar", In: "query"}},
-		&ParameterOrRef{Parameter: &Parameter{Name: "Zap", In: "path"}},
-		&ParameterOrRef{Parameter: &Parameter{Name: "Foo", In: "query"}},
+		{Parameter: &Parameter{Name: "Paz", In: "path"}},
+		{Parameter: &Parameter{Name: "Baz", In: "header"}},
+		{Parameter: &Parameter{Name: "Bar", In: "query"}},
+		{Parameter: &Parameter{Name: "Zap", In: "path"}},
+		{Parameter: &Parameter{Name: "Foo", In: "query"}},
 	}
 	// Sort by location, then by name in ascending order.
 	paramsOrderedBy(byLocation, byName).Sort(params)

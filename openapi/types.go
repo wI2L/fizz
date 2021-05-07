@@ -122,7 +122,7 @@ func DataTypeFromType(t reflect.Type) DataType {
 	}
 	// Dereference any pointer.
 	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
+		return DataTypeFromType(t.Elem())
 	}
 	// Switch over Golang types.
 	switch t {
