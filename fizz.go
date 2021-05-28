@@ -215,15 +215,10 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 		// wrap the Tonic-wrapped handled with a closure
 		// to inject it into the Gin context.
 		if operation != nil {
-			for i, h := range handlers {
-				if funcEqual(h, wrapped[0].h) {
-					orig := h // copy the original func
-					handlers[i] = func(c *gin.Context) {
-						c.Set(ctxOpenAPIOperation, operation)
-						orig(c)
-					}
-				}
+			f := func(c *gin.Context) {
+				c.Set(ctxOpenAPIOperation, operation)
 			}
+			handlers = append(gin.HandlersChain{f}, handlers...)
 		}
 	}
 	// Register the handlers with Gin underlying group.
