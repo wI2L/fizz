@@ -5,21 +5,30 @@
         "description": "This is a test server.",
         "version": "1.0.0"
     },
-    "servers": [{
-        "url": "https://foo.bar/{basePath}",
-        "description": "Such Server, Very Wow",
-        "variables": {
-            "basePath": {
-                "enum": [
-                    "v1",
-                    "v2",
-                    "beta"
-                ],
-                "default": "v2",
-                "description": "version of the API"
+    "servers": [
+        {
+            "url": "https://foo.bar/{basePath}",
+            "description": "Such Server, Very Wow",
+            "variables": {
+                "basePath": {
+                    "enum": [
+                        "v1",
+                        "v2",
+                        "beta"
+                    ],
+                    "default": "v2",
+                    "description": "version of the API"
+                }
             }
         }
-    }],
+    ],
+    "security": {
+        "api_key": [],
+        "oauth2": [
+            "write:pets",
+            "read:pets"
+        ]
+    },
     "paths": {
         "/test/{a}": {
             "get": {
@@ -88,13 +97,14 @@
                     }
                 },
                 "deprecated": true,
-                "x-codeSamples":[
+                "x-codeSamples": [
                     {
-                        "lang":"Shell",
-                        "label":"v4.4",
-                        "source":"curl http://0.0.0.0:8080"
+                        "lang": "Shell",
+                        "label": "v4.4",
+                        "source": "curl http://0.0.0.0:8080"
                     }
-                ]
+                ],
+                "security": []
             }
         },
         "/test/{a}/{b}": {
@@ -130,7 +140,16 @@
                     "200": {
                         "description": "OK"
                     }
-                }
+                },
+                "security": [
+                    {},
+                    {
+                        "oauth2": [
+                            "write:pets",
+                            "read:pets"
+                        ]
+                    }
+                ]
             }
         },
         "/test/{c}": {
@@ -175,6 +194,25 @@
                     "value": {
                         "description": "A nullable value of arbitrary type",
                         "nullable": true
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "api_key": {
+                "type": "apiKey",
+                "name": "api_key",
+                "in": "header"
+            },
+            "oauth2": {
+                "type": "oauth2",
+                "flows": {
+                    "implicit": {
+                        "authorizationUrl": "https://example.com/api/oauth/dialog",
+                        "scopes": {
+                            "write:pets": "modify pets in your account",
+                            "read:pets": "read your pets"
+                        }
                     }
                 }
             }

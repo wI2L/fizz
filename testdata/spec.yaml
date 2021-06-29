@@ -14,6 +14,11 @@ servers:
         - beta
       default: v2
       description: version of the API
+security:
+  api_key: []
+  oauth2:
+  - write:pets
+  - read:pets
 paths:
   /test/{a}:
     get:
@@ -63,6 +68,7 @@ paths:
         - lang: Shell
           label: v4.4
           source: curl http://0.0.0.0:8080
+      security: []
   /test/{a}/{b}:
     get:
       operationId: GetTest2
@@ -85,6 +91,11 @@ paths:
       responses:
         '200':
           description: OK
+      security:
+      - {}
+      - oauth2:
+        - write:pets
+        - read:pets
   /test/{c}:
     post:
       operationId: PostTest
@@ -113,3 +124,16 @@ components:
         value:
           description: "A nullable value of arbitrary type"
           nullable: true
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+    oauth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://example.com/api/oauth/dialog
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
