@@ -353,14 +353,15 @@ func InputModel(model interface{}) func(*openapi.OperationInfo) {
 	}
 }
 
-// Security adds a security definition to an operation.
+// Overrides top-level security requirement for this operation.
+// Note that this function can be used more than once to add several requirements.
 func Security(security *openapi.SecurityRequirement) func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
 		o.Security = append(o.Security, security)
 	}
 }
 
-// WithOptionalSecurity makes other security requirements optional.
+// Add an empty security requirement to this operation to make other security requirements optional.
 func WithOptionalSecurity() func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
 		var emptyRequirement openapi.SecurityRequirement = make(openapi.SecurityRequirement)
@@ -368,7 +369,7 @@ func WithOptionalSecurity() func(*openapi.OperationInfo) {
 	}
 }
 
-// WithoutSecurity explicitly removes all security.
+// Remove any top-level security requirements for this operation.
 func WithoutSecurity() func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
 		o.Security = []*openapi.SecurityRequirement{}
