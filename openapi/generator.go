@@ -47,6 +47,7 @@ type Generator struct {
 	fullNames     bool
 	sortParams    bool
 	sortTags      bool
+	handlerNamer  func(*tonic.Route) string
 }
 
 // NewGenerator returns a new OpenAPI generator.
@@ -75,6 +76,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 		fullNames:     true,
 		sortParams:    true,
 		sortTags:      true,
+		handlerNamer:  (*tonic.Route).HandlerName,
 	}, nil
 }
 
@@ -138,6 +140,17 @@ func (g *Generator) SetSortParams(b bool) {
 // sort the global tags sections.
 func (g *Generator) SetSortTags(b bool) {
 	g.sortTags = b
+}
+
+// SetHandlerNamer set the function that will be use to name the route
+func (g *Generator) SetHandlerNamer(namer func(*tonic.Route) string) {
+	g.handlerNamer = namer
+}
+
+// NameHandler return the name to associate with the given handler
+// using the namer
+func (g *Generator) NameHandler(handler *tonic.Route) string {
+	return g.handlerNamer(handler)
 }
 
 // OverrideTypeName registers a custom name for a

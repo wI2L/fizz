@@ -190,11 +190,7 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 
 		// Set an operation ID if none is provided.
 		if oi.ID == "" {
-			id := hfunc.HandlerNameWithPackage()
-			id = strings.ReplaceAll(id, "*", "")
-			id = strings.ReplaceAll(id, "(", "")
-			id = strings.ReplaceAll(id, ")", "")
-			oi.ID = id
+			oi.ID = g.gen.NameHandler(hfunc)
 		}
 		oi.StatusCode = hfunc.GetDefaultStatusCode()
 
