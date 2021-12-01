@@ -198,6 +198,7 @@ type Operation struct {
 	Servers      []*Server              `json:"servers,omitempty" yaml:"servers,omitempty"`
 	Security     []*SecurityRequirement `json:"security" yaml:"security"`
 	XCodeSamples []*XCodeSample         `json:"x-codeSamples,omitempty" yaml:"x-codeSamples,omitempty"`
+	XInternal    bool                   `json:"x-internal,omitempty" yaml:"x-internal,omitempty"`
 }
 
 // A workaround for missing omitnil functionality.
@@ -213,6 +214,7 @@ type operationNilOmitted struct {
 	Deprecated   bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	Servers      []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
 	XCodeSamples []*XCodeSample    `json:"x-codeSamples,omitempty" yaml:"x-codeSamples,omitempty"`
+	XInternal    bool              `json:"x-internal,omitempty" yaml:"x-internal,omitempty"`
 }
 
 // MarshalYAML implements yaml.Marshaler for Operation.
