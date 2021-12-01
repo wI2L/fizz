@@ -273,6 +273,7 @@ func TestSpecHandler(t *testing.T) {
 			}),
 			// Explicit override for SecurityRequirement (allow-all)
 			WithoutSecurity(),
+			XInternal(true),
 		},
 		tonic.Handler(func(c *gin.Context) error {
 			return nil
