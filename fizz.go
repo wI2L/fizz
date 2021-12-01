@@ -360,6 +360,13 @@ func XCodeSample(cs *openapi.XCodeSample) func(*openapi.OperationInfo) {
 	}
 }
 
+// XInternal marks the operation as internal or external.
+func XInternal(isInternal bool) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.XInternal = isInternal
+	}
+}
+
 // OperationFromContext returns the OpenAPI operation from
 // the givent Gin context or an error if none is found.
 func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
