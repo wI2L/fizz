@@ -13,6 +13,7 @@ type OperationInfo struct {
 	InputModel        interface{}
 	Responses         []*OperationResponse
 	XCodeSamples      []*XCodeSample
+	XInternal         bool
 }
 
 // ResponseHeader represents a single header that

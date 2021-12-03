@@ -98,6 +98,9 @@ fizz.InputModel(model interface{})
 
 // Add a Code Sample to the operation.
 fizz.XCodeSample(codeSample *XCodeSample)
+
+// Mark the operation as internal or external.
+fizz.XInternal(isInternal bool)
 ```
 
 **NOTES:**

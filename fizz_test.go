@@ -271,6 +271,7 @@ func TestSpecHandler(t *testing.T) {
 				Label:  "v4.4",
 				Source: "curl http://0.0.0.0:8080",
 			}),
+			XInternal(true),
 		},
 		tonic.Handler(func(c *gin.Context) error {
 			return nil

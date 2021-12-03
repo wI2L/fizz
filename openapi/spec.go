@@ -194,6 +194,7 @@ type Operation struct {
 	Deprecated   bool              `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	Servers      []*Server         `json:"servers,omitempty" yaml:"servers,omitempty"`
 	XCodeSamples []*XCodeSample    `json:"x-codeSamples,omitempty" yaml:"x-codeSamples,omitempty"`
+	XInternal    bool              `json:"x-internal,omitempty" yaml:"x-internal,omitempty"`
 }
 
 // Responses represents a container for the expected responses
