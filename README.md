@@ -111,7 +111,7 @@ fizz.WithoutSecurity()
 // Add a Code Sample to the operation.
 fizz.XCodeSample(codeSample *XCodeSample)
 
-// Mark the operation as internal.
+// Mark the operation as internal. The x-internal flag is interpreted by third-party tools and it only impacts the visual documentation rendering.
 fizz.XInternal()
 ```
 
