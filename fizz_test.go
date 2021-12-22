@@ -255,7 +255,7 @@ func TestSpecHandler(t *testing.T) {
 			Header("X-Request-Id", "Unique request ID", String),
 			// Additional responses.
 			Response("429", "", String, []*openapi.ResponseHeader{
-				&openapi.ResponseHeader{
+				{
 					Name:        "X-Rate-Limit",
 					Description: "Rate limit",
 					Model:       Integer,
@@ -271,6 +271,8 @@ func TestSpecHandler(t *testing.T) {
 				Label:  "v4.4",
 				Source: "curl http://0.0.0.0:8080",
 			}),
+			// Explicit override for SecurityRequirement (allow-all)
+			WithoutSecurity(),
 		},
 		tonic.Handler(func(c *gin.Context) error {
 			return nil
@@ -280,6 +282,8 @@ func TestSpecHandler(t *testing.T) {
 	fizz.GET("/test/:a/:b", []OperationOption{
 		ID("GetTest2"),
 		InputModel(&testInputModel{}),
+		WithOptionalSecurity(),
+		Security(&openapi.SecurityRequirement{"oauth2": []string{"write:pets", "read:pets"}}),
 	}, tonic.Handler(func(c *gin.Context) error {
 		return nil
 	}, 200))
@@ -301,11 +305,11 @@ func TestSpecHandler(t *testing.T) {
 	)
 
 	servers := []*openapi.Server{
-		&openapi.Server{
+		{
 			URL:         "https://foo.bar/{basePath}",
 			Description: "Such Server, Very Wow",
 			Variables: map[string]*openapi.ServerVariable{
-				"basePath": &openapi.ServerVariable{
+				"basePath": {
 					Default:     "v2",
 					Description: "version of the API",
 					Enum:        []string{"v1", "v2", "beta"},
@@ -314,6 +318,36 @@ func TestSpecHandler(t *testing.T) {
 		},
 	}
 	fizz.Generator().SetServers(servers)
+
+	security := openapi.SecurityRequirement{
+		"api_key": []string{},
+		"oauth2":  []string{"write:pets", "read:pets"},
+	}
+	fizz.Generator().SetSecurityRequirement(&security)
+
+	fizz.Generator().API().Components.SecuritySchemes = map[string]*openapi.SecuritySchemeOrRef{
+		"api_key": {
+			SecurityScheme: &openapi.SecurityScheme{
+				Type: "apiKey",
+				Name: "api_key",
+				In:   "header",
+			},
+		},
+		"oauth2": {
+			SecurityScheme: &openapi.SecurityScheme{
+				Type: "oauth2",
+				Flows: &openapi.OAuthFlows{
+					Implicit: &openapi.OAuthFlow{
+						AuthorizationURL: "https://example.com/api/oauth/dialog",
+						Scopes: map[string]string{
+							"write:pets": "modify pets in your account",
+							"read:pets":  "read your pets",
+						},
+					},
+				},
+			},
+		},
+	}
 
 	fizz.GET("/openapi.json", nil, fizz.OpenAPI(infos, "")) // default is JSON
 	fizz.GET("/openapi.yaml", nil, fizz.OpenAPI(infos, "yaml"))
