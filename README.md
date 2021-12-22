@@ -1,13 +1,15 @@
 
 <h1 align="center">Fizz</h1>
-<p align="center"><img src="images/lemon.png" height="200px" width="auto" alt="Gin Fizz"></p><p align="center">Fizz is a wrapper for <strong>Gin</strong> based on <i>gadgeto/tonic</i>.</p>
-<p align="center">It generates wrapping gin-compatible handlers that do all the repetitive work and wrap the call to your handlers. It can also generates an *almost* complete <strong>OpenAPI 3</strong> specification of your API.</p>
+<p align="center"><img src="images/lemon.png" height="200px" width="auto" alt="Gin Fizz"></p><p align="center">Fizz is a wrapper for <strong>Gin</strong> based on <strong><a href="https://github.com/loopfz/gadgeto/tree/master/tonic">gadgeto/tonic</a></strong>.</p>
+<p align="center">It generates wrapping gin-compatible handlers that do all the repetitive work and wrap the call to your handlers. It can also generates an <i>almost</i> complete <strong>OpenAPI 3</strong> specification of your API.</p>
 <p align="center">
-   <a href="https://godoc.org/github.com/wI2L/fizz"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a>
+   <a href="https://pkg.go.dev/github.com/wI2L/fizz?tab=doc"><img src="https://img.shields.io/static/v1?label=godev&message=reference&color=00add8&logo=go"></a>
    <a href="https://goreportcard.com/report/wI2L/fizz"><img src="https://goreportcard.com/badge/github.com/wI2L/fizz"></a>
-   <a href="https://travis-ci.org/wI2L/fizz"><img src="https://travis-ci.org/wI2L/fizz.svg?branch=master"></a>
+   <a href="https://github.com/wI2L/fizz/actions"><img src="https://github.com/wI2L/fizz/workflows/CI/badge.svg"></a>
    <a href="https://codecov.io/gh/wI2L/fizz"><img src="https://codecov.io/gh/wI2L/fizz/branch/master/graph/badge.svg"/></a>
+   <a href="https://github.com/wI2L/fizz/releases"><img src="https://img.shields.io/github/v/tag/wI2L/fizz?color=blueviolet&label=version&sort=semver"></a>
    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+   <a href="https://github.com/avelino/awesome-go"><img src="https://awesome.re/mentioned-badge.svg"></a>
 <br>
 </p>
 
@@ -104,17 +106,19 @@ fizz.XCodeSample(codeSample *XCodeSample)
 * `fizz.InputModel` allows to override the operation input regardless of how the handler implementation really binds the request parameters. It is the developer responsibility to ensure that the binding matches the OpenAPI specification.
 * The fist argument of the `fizz.Reponse` method which represents an HTTP status code is of type *string* because the spec accept the value `default`. See the [Responses Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject) documentation for more informations.
 
-To help you declare additional headers, predefined variables for Go primitives types that you can use as the third argument of the `fizz.Header` method are available.
+To help you declare additional headers, predefined variables for Go primitives types that you can use as the third argument of the `fizz.Header` method are available:
 ```go
-Integer  int32
-Long     int64
-Float    float32
-Double   float64
-String   string
-Byte     []byte
-Binary   []byte
-Boolean  bool
-DateTime time.Time
+var (
+   Integer  int32
+   Long     int64
+   Float    float32
+   Double   float64
+   String   string
+   Byte     []byte
+   Binary   []byte
+   Boolean  bool
+   DateTime time.Time
+)
 ```
 
 ### Groups
@@ -178,8 +182,8 @@ fizz.GET("/foo", []fizz.OperationOption{
 
 *tonic* uses three struct tags to recognize the parameters it should bind to the input object of your tonic-wrapped handlers:
 - `path`: bind from the request path
-- `query`: bind from the query string
-- `header`: bind from the request header
+- `query`: bind from the request query string
+- `header`: bind from the request headers
 
 The fields that doesn't use one of these tags will be considered as part of the request body.
 
@@ -199,14 +203,17 @@ type MyHandlerParams struct {
 ### Additional tags
 
 You can use additional tags. Some will be interpreted by *tonic*, others will be exclusively used to enrich the *OpenAPI* specification.
-- `default`: *tonic* will bind this value if none was passed with the request. This should not be used if a field is also required. Read the [documentation](https://swagger.io/docs/specification/describing-parameters/) (section _Common Mistakes_) for more informations about this behaviour.
-- `description`: Add a description of the field in the spec.
-- `deprecated`: Indicates if the field is deprecated. Accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
-- `enum`: A coma separated list of acceptable values for the parameter.
-- `example`: An example value to be used in OpenAPI specification.
-- `format`: Override the format of the field in the specification. Read the [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat) for more informations.
-- `validate`: Field validation rules. Read the [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8) for more informations.
-- `explode`: Specifies whether arrays should generate separate parameters for each array item or object property (limited to query parameters with *form* style). Accepted values are _1_, _t_, _T_, _TRUE_, _true_, _True_, _0_, _f_, _F_, _FALSE_. Invalid value are considered to be false.
+
+| name          | description                                                                                                                                                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default`     | *tonic* will bind this value if none was passed with the request. This should not be used if a field is also required. Read the [documentation](https://swagger.io/docs/specification/describing-parameters/) (section _Common Mistakes_) for more informations about this behaviour. |
+| `description` | Add a description of the field in the spec.                                                                                                                                                                                                                                           |
+| `deprecated`  | Indicates if the field is deprecated. Accepted values are `1`, `t`, `T`, `TRUE`, `true`, `True`, `0`, `f`, `F`, `FALSE`. Invalid value are considered to be false.                                                                                                                    |
+| `enum`        | A coma separated list of acceptable values for the parameter.                                                                                                                                                                                                                         |
+| `example`     | An example value to be used in OpenAPI specification.                                                                                                                                                                                                                                 |
+| `format`      | Override the format of the field in the specification. Read the [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat) for more informations.                                                                                     |
+| `validate`    | Field validation rules. Read the [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8) for more informations.                                                                                                                                                        |
+| `explode`     | Specifies whether arrays should generate separate parameters for each array item or object property (limited to query parameters with *form* style). Accepted values are `1`, `t`, `T`, `TRUE`, `true`, `True`, `0`, `f`, `F`, `FALSE`. Invalid value are considered to be false.     |
 
 ### JSON/XML
 
@@ -243,7 +250,7 @@ Based on the type of the field that carry the tag, the fields `maximum`, `minimu
 
 To serve the generated OpenAPI specification in either `JSON` or `YAML` format, use the handler returned by the `fizz.OpenAPI` method.
 
-To enrich the specification, you can provide additional informations. Head to the [OpenAPI 3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [_openapi/spec.go_](openapi/spec.go#L25).
+To enrich the specification, you can provide additional informations. Head to the [OpenAPI 3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [`openapi/spec.go`](openapi/spec.go#L25).
 
 ```go
 infos := &openapi.Info{
@@ -308,12 +315,12 @@ fizz.Generator().OverrideDataType(reflect.TypeOf(&UUIDv4{}), "string", "uuid")
 
 Fizz supports some native and imported types. A schema with a proper type and format will be generated automatically, removing the need for creating your own custom schema.
 
-* [time.Time](https://golang.org/pkg/time/#Time)
-* [time.Duration](https://golang.org/pkg/time/#Duration)
-* [net.URL](https://golang.org/pkg/net/url/#URL)
-* [net.IP](https://golang.org/pkg/net/#IP)  
+* [`time.Time`](https://golang.org/pkg/time/#Time)
+* [`time.Duration`](https://golang.org/pkg/time/#Duration)
+* [`net.URL`](https://golang.org/pkg/net/url/#URL)
+* [`net.IP`](https://golang.org/pkg/net/#IP)
 Note that, according to the doc, the inherent version of the address is a semantic property, and thus cannot be determined by Fizz. Therefore, the format returned is simply `ip`. If you want to specify the version, you can use the tags `format:"ipv4"` or `format:"ipv6"`.
-* [uuid.UUID](https://godoc.org/github.com/gofrs/uuid#UUID)
+* [`uuid.UUID`](https://godoc.org/github.com/gofrs/uuid#UUID)
 
 #### Markdown
 
