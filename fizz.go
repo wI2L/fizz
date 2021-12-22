@@ -383,7 +383,7 @@ func WithoutSecurity() func(*openapi.OperationInfo) {
 	}
 }
 
-// XInternal marks the operation as internal or external.
+// XInternal marks the operation as internal.
 func XInternal() func(*openapi.OperationInfo) {
 	return func(o *openapi.OperationInfo) {
 		o.XInternal = true
