@@ -383,6 +383,13 @@ func WithoutSecurity() func(*openapi.OperationInfo) {
 	}
 }
 
+// XInternal marks the operation as internal.
+func XInternal() func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.XInternal = true
+	}
+}
+
 // OperationFromContext returns the OpenAPI operation from
 // the givent Gin context or an error if none is found.
 func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
