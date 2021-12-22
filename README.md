@@ -114,7 +114,7 @@ fizz.XCodeSample(codeSample *XCodeSample)
 
 **NOTES:**
 * `fizz.InputModel` allows to override the operation input regardless of how the handler implementation really binds the request parameters. It is the developer responsibility to ensure that the binding matches the OpenAPI specification.
-* The fist argument of the `fizz.Reponse` method which represents an HTTP status code is of type *string* because the spec accept the value `default`. See the [Responses Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject) documentation for more informations.
+* The first argument of the `fizz.Reponse` method which represents an HTTP status code is of type *string* because the spec accept the value `default`. See the [Responses Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject) documentation for more informations.
 
 To help you declare additional headers, predefined variables for Go primitives types that you can use as the third argument of the `fizz.Header` method are available:
 ```go
