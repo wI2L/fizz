@@ -271,7 +271,7 @@ infos := &openapi.Info{
    Description: `This is a sample Fruits market server.`,
    Version:     "1.0.0",
 }
-f.GET("/openapi.json", nil, fizz.OpenAPI(infos, "json"))
+f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
 ```
 **NOTE**: The generator will never panic. However, it is strongly recommended to call `fizz.Errors` to retrieve and handle the errors that may have occured during the generation of the specification before starting your API.
 
