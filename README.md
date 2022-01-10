@@ -275,6 +275,15 @@ f.GET("/openapi.json", nil, fizz.OpenAPI(infos, "json"))
 ```
 **NOTE**: The generator will never panic. However, it is strongly recommended to call `fizz.Errors` to retrieve and handle the errors that may have occured during the generation of the specification before starting your API.
 
+## Swagger UI 
+To serve Swagger UI for generated Open API specification, use `AddOpenApiUIHandler` method specifying the path  
+``` go 
+f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
+f.AddOpenApiUIHandler("swagger-ui", "/openapi.json")
+```
+Swagger UI will be available at `/swagger-ui` using json from `/openapi.json`
+
+
 #### Components
 
 The output types of your handlers are registered as components within the generated specification. By default, the name used for each component is composed of the package and type name concatenated using _CamelCase_ style, and does not contain the full import path. As such, please ensure that you don't use the same type name in two eponym package in your application.
