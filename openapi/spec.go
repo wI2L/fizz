@@ -247,6 +247,7 @@ func omitOperationNilFields(o *Operation) *operationNilOmitted {
 		Deprecated:   o.Deprecated,
 		Servers:      o.Servers,
 		XCodeSamples: o.XCodeSamples,
+		XInternal:    o.XInternal,
 	}
 }
 
