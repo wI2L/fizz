@@ -266,6 +266,7 @@ To serve the generated OpenAPI specification in either `JSON` or `YAML` format, 
 To enrich the specification, you can provide additional informations. Head to the [OpenAPI 3 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject) for more informations about the API informations that you can specify, or take a look at the type `openapi.Info` in the file [`openapi/spec.go`](openapi/spec.go#L25).
 
 ```go
+f := fizz.New()
 infos := &openapi.Info{
    Title:       "Fruits Market",
    Description: `This is a sample Fruits market server.`,
