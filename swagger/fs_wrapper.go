@@ -1,4 +1,4 @@
-package fizz
+package swagger
 
 import (
 	"bytes"

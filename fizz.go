@@ -1,10 +1,8 @@
 package fizz
 
 import (
-	"embed"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"path"
 	"reflect"
@@ -18,12 +16,6 @@ import (
 )
 
 const ctxOpenAPIOperation = "_ctx_openapi_operation"
-
-//go:embed swagger-ui
-var swaggerUiRes embed.FS
-
-//go:embed swagger-ui/index.gohtml
-var indexHtml embed.FS
 
 // Primitive type helpers.
 var (
@@ -260,16 +252,6 @@ func (f *Fizz) OpenAPI(info *openapi.Info, ct string) gin.HandlerFunc {
 		}
 	}
 	panic("invalid content type, use JSON or YAML")
-}
-
-// AddOpenApiUIHandler adds handler that serves html for Swagger UI
-func (f *Fizz) AddOpenApiUIHandler(path string, openApiJsonPath string) {
-	sub, err := fs.Sub(swaggerUiRes, "swagger-ui")
-	if err != nil {
-		panic(err)
-	}
-
-	f.engine.StaticFS(path, http.FS(FsWrapper(sub, openApiJsonPath)))
 }
 
 // OperationOption represents an option-pattern function

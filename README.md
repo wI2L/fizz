@@ -279,7 +279,7 @@ f.GET("/openapi.json", nil, fizz.OpenAPI(infos, "json"))
 To serve Swagger UI for generated Open API specification, use `AddOpenApiUIHandler` method specifying the path  
 ``` go 
 f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
-f.AddOpenApiUIHandler("swagger-ui", "/openapi.json")
+swagger.AddOpenApiUIHandler(f.Engine(),"swagger-ui", "/openapi.json" )
 ```
 Swagger UI will be available at `/swagger-ui` using json from `/openapi.json`
 
