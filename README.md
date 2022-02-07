@@ -223,7 +223,7 @@ You can use additional tags. Some will be interpreted by *tonic*, others will be
 | `description` | Add a description of the field in the spec.                                                                                                                                                                                                                                           |
 | `deprecated`  | Indicates if the field is deprecated. Accepted values are `1`, `t`, `T`, `TRUE`, `true`, `True`, `0`, `f`, `F`, `FALSE`. Invalid value are considered to be false.                                                                                                                    |
 | `enum`        | A coma separated list of acceptable values for the parameter.                                                                                                                                                                                                                         |
-| `example`     | An example value to be used in OpenAPI specification.                                                                                                                                                                                                                                 |
+| `example`     | An example value to be used in OpenAPI specification. See [section below](#Providing-Examples-for-Custom-Types) for the demonstration on how to provide example for custom types.                                                                                                                                                                                                                                |
 | `format`      | Override the format of the field in the specification. Read the [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat) for more informations.                                                                                     |
 | `validate`    | Field validation rules. Read the [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8) for more informations.                                                                                                                                                        |
 | `explode`     | Specifies whether arrays should generate separate parameters for each array item or object property (limited to query parameters with *form* style). Accepted values are `1`, `t`, `T`, `TRUE`, `true`, `True`, `0`, `f`, `F`, `FALSE`. Invalid value are considered to be false.     |
@@ -343,6 +343,16 @@ Note that, according to the doc, the inherent version of the address is a semant
 [*source*](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#rich-text-formatting)
 
 To help you write markdown descriptions in Go, a simple builder is available in the sub-package `markdown`. This is quite handy to avoid conflicts with backticks that are both used in Go for litteral multi-lines strings and code blocks in markdown.
+
+#### Providing Examples for Custom Types
+To be able to provide examples for custom types, they must implement the `json.Marshaler` and/or `yaml.Marshaler` and the following interface:
+```go
+type Exampler interface {
+       ParseExample(v string) (interface{}, error)
+}
+```
+
+If the custom type implements the interface, Fizz will pass the value from the `example` tag to the `ParseExample` method and use the return value as the example in the OpenAPI specification.
 
 ## Known limitations
 

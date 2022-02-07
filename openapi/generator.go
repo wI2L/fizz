@@ -1237,6 +1237,12 @@ func fieldNameFromTag(sf reflect.StructField, tagName string) string {
 
 /// parseExampleValue is used to transform the string representation of the example value to the correct type.
 func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
+	// If the type implements Exampler use the ParseExample method to create the example
+	i, ok := reflect.New(t).Interface().(Exampler)
+	if ok {
+		return i.ParseExample(value)
+	}
+
 	switch t.Kind() {
 	case reflect.Bool:
 		return strconv.ParseBool(value)
@@ -1276,6 +1282,8 @@ func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 		return strconv.ParseFloat(value, t.Bits())
 	case reflect.Ptr:
 		return parseExampleValue(t.Elem(), value)
+	case reflect.Struct:
+		return nil, fmt.Errorf("type %s does not implement Exampler", t.String())
 	default:
 		return nil, fmt.Errorf("unsuported type: %s", t.String())
 	}
