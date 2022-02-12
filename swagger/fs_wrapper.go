@@ -10,25 +10,25 @@ import (
 )
 
 type fsWrapper struct {
-	fs           fs.FS
-	jsonFileName string
+	fs       fs.FS
+	specPath string
 }
 
-func FsWrapper(fs fs.FS, jsonFilePath string) *fsWrapper {
+func newFsWrapper(fs fs.FS, specPath string) *fsWrapper {
 	return &fsWrapper{
-		fs:           fs,
-		jsonFileName: jsonFilePath,
+		fs:       fs,
+		specPath: specPath,
 	}
 }
 
 func (f *fsWrapper) Open(name string) (fs.File, error) {
-	if strings.HasSuffix(name, "index.html") {
+	if strings.EqualFold(name, "index.html") {
 		tpl, err := template.ParseFS(f.fs, "index.gohtml")
 		if err != nil {
 			return nil, err
 		}
 		data := map[string]interface{}{
-			"openApiJson": strings.TrimPrefix(f.jsonFileName, "/"),
+			"specPath": f.specPath,
 		}
 
 		buf := new(bytes.Buffer)
