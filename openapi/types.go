@@ -42,6 +42,12 @@ type DataType interface {
 	Format() string
 }
 
+// Exampler is the interface implemented by custom types
+// that can parse example values.
+type Exampler interface {
+	ParseExample(v string) (interface{}, error)
+}
+
 // InternalDataType represents an internal type.
 type InternalDataType int
 

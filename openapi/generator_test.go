@@ -2,9 +2,11 @@ package openapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -733,6 +735,26 @@ func TestSetServers(t *testing.T) {
 	assert.Equal(t, servers, g.API().Servers)
 }
 
+type customUnit float64
+
+func (c customUnit) ParseExample(v string) (interface{}, error) {
+	s, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return nil, err
+	}
+	return fmt.Sprintf("%.2f USD", s), nil
+}
+
+type customTime time.Time
+
+func (c customTime) ParseExample(v string) (interface{}, error) {
+	t1, err := time.Parse(time.RFC3339, v)
+	if err != nil {
+		return nil, err
+	}
+	return customTime(t1), nil
+}
+
 // TestGenerator_parseExampleValue tests the parsing of example values.
 func TestGenerator_parseExampleValue(t *testing.T) {
 	var testCases = []struct {
@@ -872,6 +894,30 @@ func TestGenerator_parseExampleValue(t *testing.T) {
 			reflect.PtrTo(reflect.TypeOf(true)),
 			"true",
 			true,
+		},
+		{
+			"mapping to customUnit",
+			reflect.TypeOf(customUnit(1)),
+			"15",
+			"15.00 USD",
+		},
+		{
+			"mapping pointer to customUnit",
+			reflect.PtrTo(reflect.TypeOf(customUnit(1))),
+			"20.00000",
+			"20.00 USD",
+		},
+		{
+			"mapping to customTime",
+			reflect.TypeOf(customTime{}),
+			"2022-02-07T18:00:00+09:00",
+			customTime(time.Date(2022, time.February, 7, 18, 0, 0, 0, time.FixedZone("", 9*3600))),
+		},
+		{
+			"mapping pointer to customTime",
+			reflect.PtrTo(reflect.TypeOf(customTime{})),
+			"2022-02-07T18:00:00+09:00",
+			customTime(time.Date(2022, time.February, 7, 18, 0, 0, 0, time.FixedZone("", 9*3600))),
 		},
 	}
 

@@ -33,6 +33,10 @@ paths:
               description: Unique request ID
               schema:
                 type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FizzT'
         '400':
           description: Bad Request
           content:
@@ -116,6 +120,22 @@ paths:
           description: Created
 components:
   schemas:
+    FizzCustomTime:
+      type: object
+      description: This is Z
+      example: 2022-02-07T18:00:00
+    FizzT:
+      type: object
+      properties:
+        x:
+          type: string
+          description: This is X
+        "y":
+          type: integer
+          description: This is Y
+          format: int32
+        z:
+          $ref: '#/components/schemas/FizzCustomTime'
     PostTestInput:
       type: object
       properties:
