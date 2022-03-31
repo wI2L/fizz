@@ -258,6 +258,10 @@ type testInputModel struct {
 	QueryParam string `query:"q"`
 }
 
+type testInputModel1 struct {
+	PathParam1 string `path:"a"`
+}
+
 type testInputModel2 struct {
 	C        string      `path:"c"`
 	Message  string      `json:"message" description:"A short message"`
@@ -305,7 +309,7 @@ func TestSpecHandler(t *testing.T) {
 			WithoutSecurity(),
 			XInternal(),
 		},
-		tonic.Handler(func(c *gin.Context) (*T, error) {
+		tonic.Handler(func(c *gin.Context, in *testInputModel1) (*T, error) {
 			return &T{}, nil
 		}, 200),
 	)
@@ -350,11 +354,11 @@ func TestSpecHandler(t *testing.T) {
 	}
 	fizz.Generator().SetServers(servers)
 
-	security := openapi.SecurityRequirement{
-		"api_key": []string{},
-		"oauth2":  []string{"write:pets", "read:pets"},
+	security := []*openapi.SecurityRequirement{
+		{"api_key": []string{}},
+		{"oauth2": []string{"write:pets", "read:pets"}},
 	}
-	fizz.Generator().SetSecurityRequirement(&security)
+	fizz.Generator().SetSecurityRequirement(security)
 
 	fizz.Generator().API().Components.SecuritySchemes = map[string]*openapi.SecuritySchemeOrRef{
 		"api_key": {

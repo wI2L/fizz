@@ -15,16 +15,22 @@ servers:
       default: v2
       description: version of the API
 security:
-  api_key: []
-  oauth2:
-  - write:pets
-  - read:pets
+  - api_key: []
+  - oauth2:
+    - write:pets
+    - read:pets
 paths:
   /test/{a}:
     get:
       summary: Test-A
       description: Test routes
       operationId: GetTest
+      parameters:
+      - name: a
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: OK

@@ -106,7 +106,7 @@ func (g *Generator) SetServers(servers []*Server) {
 
 // SetSecurityRequirement sets the security options for the
 // current specification.
-func (g *Generator) SetSecurityRequirement(security *SecurityRequirement) {
+func (g *Generator) SetSecurityRequirement(security []*SecurityRequirement) {
 	g.api.Security = security
 }
 

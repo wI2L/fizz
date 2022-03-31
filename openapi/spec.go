@@ -5,14 +5,14 @@ import "encoding/json"
 // OpenAPI represents the root document object of
 // an OpenAPI document.
 type OpenAPI struct {
-	OpenAPI    string               `json:"openapi" yaml:"openapi"`
-	Info       *Info                `json:"info" yaml:"info"`
-	Servers    []*Server            `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Paths      Paths                `json:"paths" yaml:"paths"`
-	Components *Components          `json:"components,omitempty" yaml:"components,omitempty"`
-	Tags       []*Tag               `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Security   *SecurityRequirement `json:"security,omitempty" yaml:"security,omitempty"`
-	XTagGroups []*XTagGroup         `json:"x-tagGroups,omitempty" yaml:"x-tagGroups,omitempty"`
+	OpenAPI    string                 `json:"openapi" yaml:"openapi"`
+	Info       *Info                  `json:"info" yaml:"info"`
+	Servers    []*Server              `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Paths      Paths                  `json:"paths" yaml:"paths"`
+	Components *Components            `json:"components,omitempty" yaml:"components,omitempty"`
+	Tags       []*Tag                 `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Security   []*SecurityRequirement `json:"security,omitempty" yaml:"security,omitempty"`
+	XTagGroups []*XTagGroup           `json:"x-tagGroups,omitempty" yaml:"x-tagGroups,omitempty"`
 }
 
 // Components holds a set of reusable objects for different
