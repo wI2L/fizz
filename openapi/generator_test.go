@@ -571,6 +571,11 @@ func TestSetOperationResponseError(t *testing.T) {
 	}
 	err := g.setOperationResponse(op, reflect.TypeOf(new(string)), "200", "application/json", "", nil, nil, nil)
 	assert.Nil(t, err)
+	assert.Equal(t, "OK", op.Responses["200"].Description)
+
+	err = g.setOperationResponse(op, reflect.TypeOf(new(string)), "429", "application/json", "testDesc", nil, nil, nil)
+	assert.Nil(t, err)
+	assert.Equal(t, "testDesc", op.Responses["429"].Description)
 
 	// Add another response with same code.
 	err = g.setOperationResponse(op, reflect.TypeOf(new(int)), "200", "application/xml", "", nil, nil, nil)
@@ -727,7 +732,8 @@ func TestSetServers(t *testing.T) {
 					},
 					Default: "v2",
 				},
-			}},
+			},
+		},
 	}
 	g.SetServers(servers)
 
@@ -757,7 +763,7 @@ func (c customTime) ParseExample(v string) (interface{}, error) {
 
 // TestGenerator_parseExampleValue tests the parsing of example values.
 func TestGenerator_parseExampleValue(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		testName    string
 		typ         reflect.Type
 		inputValue  string
