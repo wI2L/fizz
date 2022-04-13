@@ -278,7 +278,7 @@ f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
 
 #### Servers information
 
-If the OpenAPI specification refers to an API that is not hosted on the same domain, or using a path prefix not included in the spec, you will have to declare server information. This can be achieved using `f.Generator().SetServers` method.
+If the OpenAPI specification refers to an API that is not hosted on the same domain, or using a path prefix not included in the spec, you will have to declare server information. This can be achieved using the `f.Generator().SetServers` method.
 
 ```go
 f := fizz.New()
@@ -292,7 +292,7 @@ f.Generator().SetServers([]*openapi.Server{
 
 #### Security schemes
 
-If your API requires authentication, you need/must declare the security schemes that can be used by the operations. This can be achieved using `f.Generator().SetSecuritySchemes` method.
+If your API requires authentication, you have to declare the security schemes that can be used by the operations. This can be achieved using the `f.Generator().SetSecuritySchemes` method.
 
 ```go
 f := fizz.New()
@@ -307,7 +307,7 @@ f.Generator().SetSecuritySchemes(map[string]*openapi.SecuritySchemeOrRef{
 })
 ```
 
-Once set, the security schemes will be available/used by all operations. You can override them per operation/for each operation, using:
+Once defined, the security schemes will be available for all operations. You can override them on an per-operation basis using the `fizz.Security()` function.
 
 ```go
 fizz.Security(&openapi.SecurityRequirement{
