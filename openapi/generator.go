@@ -110,6 +110,12 @@ func (g *Generator) SetSecurityRequirement(security []*SecurityRequirement) {
 	g.api.Security = security
 }
 
+// SetSecuritySchemes sets the security schemes that can be used
+// inside the operations of the specification.
+func (g *Generator) SetSecuritySchemes(security map[string]*SecuritySchemeOrRef) {
+	g.api.Components.SecuritySchemes = security
+}
+
 // API returns a copy of the internal OpenAPI object.
 func (g *Generator) API() *OpenAPI {
 	cpy := *g.api
