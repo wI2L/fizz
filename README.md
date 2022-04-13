@@ -223,7 +223,7 @@ You can use additional tags. Some will be interpreted by *tonic*, others will be
 | `description` | Add a description of the field in the spec.                                                                                                                                                                                                                                           |
 | `deprecated`  | Indicates if the field is deprecated. Accepted values are `1`, `t`, `T`, `TRUE`, `true`, `True`, `0`, `f`, `F`, `FALSE`. Invalid value are considered to be false.                                                                                                                    |
 | `enum`        | A coma separated list of acceptable values for the parameter.                                                                                                                                                                                                                         |
-| `example`     | An example value to be used in OpenAPI specification. See [section below](#Providing-Examples-for-Custom-Types) for the demonstration on how to provide example for custom types.                                                                                                                                                                                                                                |
+| `example`     | An example value to be used in OpenAPI specification. See [section below](#Providing-Examples-for-Custom-Types) for the demonstration on how to provide example for custom types.                                                                                                     |
 | `format`      | Override the format of the field in the specification. Read the [documentation](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#dataTypeFormat) for more informations.                                                                                     |
 | `validate`    | Field validation rules. Read the [documentation](https://godoc.org/gopkg.in/go-playground/validator.v8) for more informations.                                                                                                                                                        |
 | `explode`     | Specifies whether arrays should generate separate parameters for each array item or object property (limited to query parameters with *form* style). Accepted values are `1`, `t`, `T`, `TRUE`, `true`, `True`, `0`, `f`, `F`, `FALSE`. Invalid value are considered to be false.     |
@@ -275,6 +275,45 @@ infos := &openapi.Info{
 f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
 ```
 **NOTE**: The generator will never panic. However, it is strongly recommended to call `fizz.Errors` to retrieve and handle the errors that may have occured during the generation of the specification before starting your API.
+
+#### Servers information
+
+If the OpenAPI specification refers to an API that is not hosted on the same domain, or using a path prefix not included in the spec, you will have to declare server information. This can be achieved using the `f.Generator().SetServers` method.
+
+```go
+f := fizz.New()
+f.Generator().SetServers([]*openapi.Server{
+   {
+      Description: "Fruits Market - production",
+      URL:         "https://example.org/api/1.0",
+   },
+})
+```
+
+#### Security schemes
+
+If your API requires authentication, you have to declare the security schemes that can be used by the operations. This can be achieved using the `f.Generator().SetSecuritySchemes` method.
+
+```go
+f := fizz.New()
+f.Generator().SetSecuritySchemes(map[string]*openapi.SecuritySchemeOrRef{
+   "apiToken": {
+      SecurityScheme: &openapi.SecurityScheme{
+         Type: "apiKey",
+         In:   "header",
+         Name: "x-api-token",
+      },
+   },
+})
+```
+
+Once defined, the security schemes will be available for all operations. You can override them on an per-operation basis using the `fizz.Security()` function.
+
+```go
+fizz.Security(&openapi.SecurityRequirement{
+   "apiToken": []string{},
+})
+```
 
 #### Components
 

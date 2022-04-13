@@ -16,7 +16,7 @@ type OpenAPI struct {
 }
 
 // Components holds a set of reusable objects for different
-// ascpects of the specification.
+// aspects of the specification.
 type Components struct {
 	Schemas         map[string]*SchemaOrRef         `json:"schemas,omitempty" yaml:"schemas,omitempty"`
 	Responses       map[string]*ResponseOrRef       `json:"responses,omitempty" yaml:"responses,omitempty"`
