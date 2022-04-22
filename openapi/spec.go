@@ -340,7 +340,7 @@ func (eor *ExampleOrRef) MarshalYAML() (interface{}, error) {
 	return eor.Reference, nil
 }
 
-// Example represents the exanple of a media type.
+// Example represents the example of a media type.
 type Example struct {
 	Summary       string      `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description   string      `json:"description,omitempty" yaml:"description,omitempty"`
