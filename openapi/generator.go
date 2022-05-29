@@ -106,8 +106,14 @@ func (g *Generator) SetServers(servers []*Server) {
 
 // SetSecurityRequirement sets the security options for the
 // current specification.
-func (g *Generator) SetSecurityRequirement(security *SecurityRequirement) {
+func (g *Generator) SetSecurityRequirement(security []*SecurityRequirement) {
 	g.api.Security = security
+}
+
+// SetSecuritySchemes sets the security schemes that can be used
+// inside the operations of the specification.
+func (g *Generator) SetSecuritySchemes(security map[string]*SecuritySchemeOrRef) {
+	g.api.Components.SecuritySchemes = security
 }
 
 // API returns a copy of the internal OpenAPI object.
@@ -379,7 +385,9 @@ func (g *Generator) setOperationResponse(op *Operation, t reflect.Type, code, mt
 			if ci < 100 || ci > 599 {
 				return fmt.Errorf("response code out of range: %s", code)
 			}
-			desc = http.StatusText(ci)
+			if desc == "" {
+				desc = http.StatusText(ci)
+			}
 		}
 	}
 	r := &Response{
@@ -712,7 +720,7 @@ func (g *Generator) paramLocation(f reflect.StructField, in reflect.Type) (strin
 	// Count the number of keys that represents
 	// a parameter location from the tag of the
 	// struct field.
-	var parameterLocations = []string{
+	parameterLocations := []string{
 		g.config.PathLocationTag,
 		g.config.QueryLocationTag,
 		g.config.HeaderLocationTag,
