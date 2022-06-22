@@ -17,6 +17,15 @@ import (
 
 const ctxOpenAPIOperation = "_ctx_openapi_operation"
 
+type FizzConfig struct {
+	// Do the openapi spec generated follow the order of your struct or do we sort the params alphabetically
+	SortParams bool
+}
+
+var Config = FizzConfig{
+	SortParams: true,
+}
+
 // Primitive type helpers.
 var (
 	Integer  int32
@@ -66,6 +75,7 @@ func NewFromEngine(e *gin.Engine) *Fizz {
 			HeaderLocationTag: tonic.HeaderTag,
 			EnumTag:           tonic.EnumTag,
 			DefaultTag:        tonic.DefaultTag,
+			SortParams:        Config.SortParams,
 		},
 	)
 	return &Fizz{

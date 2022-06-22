@@ -73,7 +73,7 @@ func NewGenerator(conf *SpecGenConfig) (*Generator, error) {
 		dataTypes:     make(map[reflect.Type]*OverridedDataType),
 		operationsIDS: make(map[string]struct{}),
 		fullNames:     true,
-		sortParams:    true,
+		sortParams:    conf.SortParams,
 		sortTags:      true,
 	}, nil
 }
@@ -90,6 +90,7 @@ type SpecGenConfig struct {
 	HeaderLocationTag string
 	EnumTag           string
 	DefaultTag        string
+	SortParams        bool
 }
 
 // SetInfo uses the given OpenAPI info for the
