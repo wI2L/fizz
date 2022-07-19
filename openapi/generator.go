@@ -1177,6 +1177,10 @@ func (g *Generator) updateSchemaValidation(schema *Schema, sf reflect.StructFiel
 		if t == "dive" || t == "keys" {
 			break
 		}
+		if t == "email" {
+			schema.Format = "email"
+			break
+		}
 		// Tags can be joined together with an OR operator.
 		parts := strings.Split(t, "|")
 
