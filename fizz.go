@@ -1,6 +1,7 @@
 package fizz
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -391,9 +392,9 @@ func XInternal() func(*openapi.OperationInfo) {
 }
 
 // OperationFromContext returns the OpenAPI operation from
-// the givent Gin context or an error if none is found.
-func OperationFromContext(c *gin.Context) (*openapi.Operation, error) {
-	if v, ok := c.Get(ctxOpenAPIOperation); ok {
+// the given Gin context or an error if none is found.
+func OperationFromContext(ctx context.Context) (*openapi.Operation, error) {
+	if v := ctx.Value(ctxOpenAPIOperation); v != nil {
 		if op, ok := v.(*openapi.Operation); ok {
 			return op, nil
 		}
