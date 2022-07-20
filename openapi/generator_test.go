@@ -48,6 +48,7 @@ type (
 		*u
 		uu *u // ignored, unexported field
 		q     // ignored, embedded field of non-struct type
+		*Q `json:"data"`
 	}
 	Y struct {
 		H float32   `validate:"required"`
@@ -62,6 +63,9 @@ type (
 		M int `json:"-"`
 	}
 	Z map[string]*Y
+	Q struct {
+		NnNnnN string `json:"nnNnnN"`
+	}
 )
 
 func (*X) TypeName() string { return "XXX" }

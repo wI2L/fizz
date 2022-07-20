@@ -70,6 +70,9 @@
         "S": {
             "type": "integer",
             "format": "int32"
+        },
+        "data": {
+            "$ref": "#/components/schemas/Q"
         }
     },
     "required": [

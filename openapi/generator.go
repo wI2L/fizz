@@ -1009,8 +1009,10 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 			ft = ft.Elem()
 		}
 		isUnexported := f.PkgPath != ""
+		mediaTag := mediaTags[tonic.MediaType()]
+		_, hasTag := f.Tag.Lookup(mediaTag)
 
-		if f.Anonymous {
+		if f.Anonymous && !hasTag {
 			if isUnexported && ft.Kind() != reflect.Struct {
 				// Ignore embedded fields of unexported non-struct types.
 				continue
@@ -1038,7 +1040,7 @@ func (g *Generator) flattenStructSchema(t, parent reflect.Type, schema *Schema) 
 			// Ignore unexported non-embedded fields.
 			continue
 		}
-		fname := fieldNameFromTag(f, mediaTags[tonic.MediaType()])
+		fname := fieldNameFromTag(f, mediaTag)
 		if fname == "" {
 			// Field has no name, skip it.
 			continue
