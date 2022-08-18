@@ -361,6 +361,23 @@ func TestNewSchemaFromStructFieldErrors(t *testing.T) {
 	assert.Equal(t, reflect.Bool, fe.Type.Kind())
 }
 
+func TestNewSchemaFromStructFieldFormat(t *testing.T) {
+	g := gen(t)
+
+	type T struct {
+		A string `validate:"email" default:"foobar"`
+	}
+	typ := reflect.TypeOf(T{})
+
+	// Field A is required and has a default value.
+	sor := g.newSchemaFromStructField(typ.Field(0), true, "A", typ)
+	assert.NotNil(t, sor)
+	assert.Len(t, g.Errors(), 1)
+	assert.Implements(t, (*error)(nil), g.Errors()[0])
+	assert.NotEmpty(t, g.Errors()[0].Error())
+	assert.Equal(t, sor.Schema.Format, "email")
+}
+
 func diffJSON(a, b []byte) (bool, error) {
 	var j, j2 interface{}
 	if err := json.Unmarshal(a, &j); err != nil {
