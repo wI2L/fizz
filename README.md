@@ -257,7 +257,7 @@ The *OpenAPI* generator recognize some tags of the [go-playground/validator.v8](
 
 The supported tags are: [len](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Length), [max](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Maximum), [min](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Mininum), [eq](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Equals), [gt](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Greater_Than), [gte](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Greater_Than_or_Equal), [lt](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Less_Than), [lte](https://godoc.org/gopkg.in/go-playground/validator.v8#hdr-Less_Than_or_Equal).
 
-Based on the type of the field that carry the tag, the fields `maximum`, `minimum`, `minLength`, `maxLength`, `minIntems`, `maxItems`, `minProperties` and `maxProperties` of its **JSON Schema** will be filled accordingly.
+Based on the type of the field that carry the tag, the fields `maximum`, `minimum`, `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties` and `maxProperties` of its **JSON Schema** will be filled accordingly.
 
 ## OpenAPI specification
 
