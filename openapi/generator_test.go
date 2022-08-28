@@ -48,7 +48,8 @@ type (
 		*u
 		uu *u // ignored, unexported field
 		q     // ignored, embedded field of non-struct type
-		*Q `json:"data"`
+		*Q
+		*V `json:"data"`
 	}
 	Y struct {
 		H float32   `validate:"required"`
@@ -65,6 +66,9 @@ type (
 	Z map[string]*Y
 	Q struct {
 		NnNnnN string `json:"nnNnnN"`
+	}
+	V struct {
+		L int
 	}
 )
 

@@ -71,8 +71,11 @@
             "type": "integer",
             "format": "int32"
         },
+        "nnNnnN":{
+            "type":"string"
+        },
         "data": {
-            "$ref": "#/components/schemas/Q"
+            "$ref": "#/components/schemas/V"
         }
     },
     "required": [
