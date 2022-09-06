@@ -70,6 +70,12 @@
         "S": {
             "type": "integer",
             "format": "int32"
+        },
+        "nnNnnN":{
+            "type":"string"
+        },
+        "data": {
+            "$ref": "#/components/schemas/V"
         }
     },
     "required": [
