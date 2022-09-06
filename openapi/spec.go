@@ -340,7 +340,7 @@ func (eor *ExampleOrRef) MarshalYAML() (interface{}, error) {
 	return eor.Reference, nil
 }
 
-// Example represents the exanple of a media type.
+// Example represents the example of a media type.
 type Example struct {
 	Summary       string      `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description   string      `json:"description,omitempty" yaml:"description,omitempty"`
@@ -405,6 +405,16 @@ type OAuthFlow struct {
 	TokenURL         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
 	RefreshURL       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
 	Scopes           map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
+}
+
+// MarshalYAML implements yaml.Marshaler for OAuthFlow.
+func (f OAuthFlow) MarshalYAML() ([]byte, error) {
+	type flow OAuthFlow
+	if f.Scopes == nil {
+		// The field is REQUIRED and MAY be empty according to the spec.
+		f.Scopes = map[string]string{}
+	}
+	return json.Marshal(flow(f))
 }
 
 // SecurityRequirement represents the security object in the API specification.
