@@ -89,6 +89,11 @@ func (f *Fizz) Engine() *gin.Engine {
 	return f.engine
 }
 
+// GinRouterGroup returns the underlying Gin router group.
+func (f *Fizz) GinRouterGroup() *gin.RouterGroup {
+	return f.group
+}
+
 // Generator returns the underlying OpenAPI generator.
 func (f *Fizz) Generator() *openapi.Generator {
 	return f.gen
@@ -117,6 +122,11 @@ func (g *RouterGroup) Group(path, name, description string, handlers ...gin.Hand
 // Use adds middleware to the group.
 func (g *RouterGroup) Use(handlers ...gin.HandlerFunc) {
 	g.group.Use(handlers...)
+}
+
+// GinRouterGroup returns the underlying Gin router group.
+func (g *RouterGroup) GinRouterGroup() *gin.RouterGroup {
+	return g.group
 }
 
 // GET is a shortcut to register a new handler with the GET method.
