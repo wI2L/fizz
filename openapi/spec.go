@@ -407,6 +407,16 @@ type OAuthFlow struct {
 	Scopes           map[string]string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 }
 
+// MarshalYAML implements yaml.Marshaler for OAuthFlow.
+func (f OAuthFlow) MarshalYAML() ([]byte, error) {
+	type flow OAuthFlow
+	if f.Scopes == nil {
+		// The field is REQUIRED and MAY be empty according to the spec.
+		f.Scopes = map[string]string{}
+	}
+	return json.Marshal(flow(f))
+}
+
 // SecurityRequirement represents the security object in the API specification.
 type SecurityRequirement map[string][]string
 
