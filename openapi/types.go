@@ -40,6 +40,7 @@ type Typer interface {
 type DataType interface {
 	Type() string
 	Format() string
+	Nullable() bool
 }
 
 // Exampler is the interface implemented by custom types
@@ -54,8 +55,9 @@ type InternalDataType int
 // OverridedDataType represents a data type
 // which details override the default generation.
 type OverridedDataType struct {
-	format string
-	typ    string
+	format   string
+	typ      string
+	nullable bool
 }
 
 // Format implements DataType for OverridedDataType.
@@ -63,6 +65,8 @@ func (dt *OverridedDataType) Format() string { return dt.format }
 
 // Type implements DataType for OverridedDataType.
 func (dt *OverridedDataType) Type() string { return dt.typ }
+
+func (dt *OverridedDataType) Nullable() bool { return dt.nullable }
 
 // Type constants.
 const (
@@ -114,6 +118,10 @@ func (dt InternalDataType) Format() string {
 		return formats[dt]
 	}
 	return ""
+}
+
+func (dt InternalDataType) Nullable() bool {
+	return false
 }
 
 // DataTypeFromType returns a DataType for the given type.

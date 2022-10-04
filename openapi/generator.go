@@ -869,14 +869,18 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 	if t == nil {
 		return nil
 	}
+
+	dt := g.datatype(t)
+
 	var nullable bool
 
 	// Dereference pointer.
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 		nullable = true
+	} else {
+		nullable = dt.Nullable()
 	}
-	dt := g.datatype(t)
 	if dt == TypeUnsupported {
 		g.error(&TypeError{
 			Message: "unsupported type",
