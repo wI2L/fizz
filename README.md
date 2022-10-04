@@ -360,11 +360,12 @@ The schema of the type will look like the following instead of describing all th
 
 If you want to override the `nullable` property of a type, you can implement the `Nullable` interface for this type.
 
-For example, if `NullString` is not referenced by a pointer in your model but you still want it to be "nullable"
-```go
-type NullSring struct { ... }
+For example, if [sql.NullString](https://pkg.go.dev/database/sql#NullString) is not referenced by a pointer in your model but you still want it to be "nullable":
 
-func (*NullString) Nullable() bool { return true }
+```go
+type NullString sql.NullString
+
+func (NullString) Nullable() bool { return true }
 ```
 
 **WARNING:** You **MUST** not rely on the method receivers to return the type and format, because these methods will be called on a new instance created by the generator with the `reflect` package.
