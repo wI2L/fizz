@@ -13,6 +13,7 @@ import (
 
 var (
 	tofDataType = reflect.TypeOf((*DataType)(nil)).Elem()
+	tofNullable = reflect.TypeOf((*Nullable)(nil)).Elem()
 
 	// Native.
 	tofTime           = reflect.TypeOf(time.Time{})
