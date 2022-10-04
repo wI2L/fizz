@@ -48,6 +48,12 @@ type Exampler interface {
 	ParseExample(v string) (interface{}, error)
 }
 
+// Nullable is the interface implemented by the types
+// that can be nullable
+type Nullable interface {
+	Nullable() bool
+}
+
 // InternalDataType represents an internal type.
 type InternalDataType int
 
