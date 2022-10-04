@@ -878,10 +878,11 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 	}
 	dt := g.datatype(t)
 
-	// Check for "Nullable"
-	i, ok := reflect.New(t).Interface().(Nullable)
-	if ok {
-		nullable = i.Nullable()
+	if t.Implements(tofNullable) {
+		i, ok := reflect.New(t).Interface().(Nullable)
+		if ok {
+			nullable = i.Nullable()
+		}
 	}
 
 	if dt == TypeUnsupported {
@@ -1262,6 +1263,11 @@ func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 	i, ok := reflect.New(t).Interface().(Exampler)
 	if ok {
 		return i.ParseExample(value)
+	}
+
+	if t.Name() == "NullString" {
+		kind := t.Kind()
+		fmt.Println(kind)
 	}
 
 	switch t.Kind() {
