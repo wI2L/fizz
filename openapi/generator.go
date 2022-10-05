@@ -875,15 +875,13 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 		nullable = true
-	}
-	dt := g.datatype(t)
-
-	if t.Implements(tofNullable) {
+	} else if t.Implements(tofNullable) {
 		i, ok := reflect.New(t).Interface().(Nullable)
 		if ok {
 			nullable = i.Nullable()
 		}
 	}
+	dt := g.datatype(t)
 
 	if dt == TypeUnsupported {
 		g.error(&TypeError{
@@ -1263,11 +1261,6 @@ func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 	i, ok := reflect.New(t).Interface().(Exampler)
 	if ok {
 		return i.ParseExample(value)
-	}
-
-	if t.Name() == "NullString" {
-		kind := t.Kind()
-		fmt.Println(kind)
 	}
 
 	switch t.Kind() {
