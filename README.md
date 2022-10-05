@@ -360,7 +360,7 @@ The schema of the type will look like the following instead of describing all th
 
 If you want to override the `nullable` property of a type, you can implement the `Nullable` interface for this type.
 
-For example, if [sql.NullString](https://pkg.go.dev/database/sql#NullString) is not referenced by a pointer in your model but you still want it to be "nullable":
+For example, if [`sql.NullString`](https://pkg.go.dev/database/sql#NullString) is not referenced by a pointer in your model but you still want it to be "nullable":
 
 ```go
 type NullString sql.NullString
