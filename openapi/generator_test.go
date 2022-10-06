@@ -33,8 +33,10 @@ type (
 	u struct {
 		S int
 	}
-	q int
-	X struct {
+	q  int
+	ns string
+	ni int
+	X  struct {
 		*X // ignored, recursive embedding
 		*Y
 		A string `validate:"required"`
@@ -50,6 +52,8 @@ type (
 		q     // ignored, embedded field of non-struct type
 		*Q
 		*V `json:"data"`
+		NS ns
+		NI *ni
 	}
 	Y struct {
 		H float32   `validate:"required"`
@@ -75,6 +79,8 @@ type (
 func (*X) TypeName() string { return "XXX" }
 func (*W) Format() string   { return "wallet" }
 func (*W) Type() string     { return "string" }
+func (ns) Nullable() bool   { return true }
+func (ni) Nullable() bool   { return false }
 
 // TestStructFieldName tests that the name of a
 // struct field can be correctly extracted.
