@@ -45,7 +45,7 @@ type (
 		D []*Y
 		E [3]*X
 		F *X
-		G Y
+		G *Y
 		H map[int]*Y // ignored, unsupported keys type
 		*u
 		uu *u // ignored, unexported field
