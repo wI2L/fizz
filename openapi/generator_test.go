@@ -386,6 +386,39 @@ func TestNewSchemaFromStructFieldFormat(t *testing.T) {
 	assert.Equal(t, sor.Schema.Format, "email")
 }
 
+func TestNewSchemaFromEnumField(t *testing.T) {
+	g := gen(t)
+
+	type T struct {
+		A string  `enum:"a,b,c"`
+		B int     `enum:"1,2,3"`
+		C *string `enum:"d,e,f"`
+		D *int    `enum:"4,5,6"`
+	}
+
+	typ := reflect.TypeOf(T{})
+
+	sor := g.newSchemaFromStructField(typ.Field(0), true, "A", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, sor.Nullable, false)
+	assert.Equal(t, []interface{}{"a", "b", "c"}, sor.Enum)
+
+	sor = g.newSchemaFromStructField(typ.Field(1), true, "B", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, sor.Nullable, false)
+	assert.Equal(t, []interface{}{int64(1), int64(2), int64(3)}, sor.Enum)
+
+	sor = g.newSchemaFromStructField(typ.Field(2), false, "C", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, sor.Nullable, true)
+	assert.Equal(t, []interface{}{"d", "e", "f"}, sor.Enum)
+
+	sor = g.newSchemaFromStructField(typ.Field(3), false, "D", typ)
+	assert.NotNil(t, sor)
+	assert.Equal(t, sor.Nullable, true)
+	assert.Equal(t, []interface{}{int64(4), int64(5), int64(6)}, sor.Enum)
+}
+
 func diffJSON(a, b []byte) (bool, error) {
 	var j, j2 interface{}
 	if err := json.Unmarshal(a, &j); err != nil {
