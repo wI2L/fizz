@@ -1,4 +1,4 @@
-package test_types
+package base_types
 
 import "time"
 
