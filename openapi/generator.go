@@ -879,8 +879,14 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 		nullable = true
+	} else if t.Implements(tofNullable) {
+		i, ok := reflect.New(t).Interface().(Nullable)
+		if ok {
+			nullable = i.Nullable()
+		}
 	}
 	dt := g.datatype(t)
+
 	if dt == TypeUnsupported {
 		g.error(&TypeError{
 			Message: "unsupported type",
