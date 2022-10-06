@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/wI2L/fizz/testdata/test_types"
+	"github.com/wI2L/fizz/testdata/test_types_extra"
 	"io/ioutil"
 	"math"
 	"reflect"
@@ -133,6 +134,19 @@ func TestSchemaFromMapWithUnsupportedKeys(t *testing.T) {
 	assert.Len(t, g.Errors(), 1)
 	assert.Implements(t, (*error)(nil), g.Errors()[0])
 	assert.NotEmpty(t, g.Errors()[0].Error())
+}
+
+// TestSchemaFromDuplicatedType tests that a
+// schema cannot be created with 2 types with
+// the same name
+func TestSchemaFromDuplicatedType(t *testing.T) {
+	g := gen(t)
+
+	schema := g.newSchemaFromType(rt(new(test_types_extra.D)))
+	assert.NotNil(t, schema)
+	assert.Len(t, g.Errors(), 1)
+	assert.Implements(t, (*error)(nil), g.Errors()[0])
+	assert.NotEmpty(t, g.Errors()[0])
 }
 
 // TestSchemaFromComplex tests that a schema
