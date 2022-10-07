@@ -76,6 +76,15 @@
         },
         "data": {
             "$ref": "#/components/schemas/V"
+        },
+        "NS": {
+            "nullable": true,
+            "type": "string"
+        },
+        "NI" : {
+            "nullable": true,
+            "type": "integer",
+            "format": "int32"
         }
     },
     "required": [

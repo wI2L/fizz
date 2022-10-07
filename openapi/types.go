@@ -13,6 +13,7 @@ import (
 
 var (
 	tofDataType = reflect.TypeOf((*DataType)(nil)).Elem()
+	tofNullable = reflect.TypeOf((*Nullable)(nil)).Elem()
 
 	// Native.
 	tofTime           = reflect.TypeOf(time.Time{})
@@ -46,6 +47,12 @@ type DataType interface {
 // that can parse example values.
 type Exampler interface {
 	ParseExample(v string) (interface{}, error)
+}
+
+// Nullable is the interface implemented by the types
+// that can be nullable.
+type Nullable interface {
+	Nullable() bool
 }
 
 // InternalDataType represents an internal type.
