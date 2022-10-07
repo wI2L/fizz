@@ -842,12 +842,8 @@ func (g *Generator) enumFromStructField(sf reflect.StructField, fname string, pa
 		values := strings.Split(etag, ",")
 		sftype := sf.Type
 
-		// Use pointed element type if it's a pointer
-		if sftype.Kind() == reflect.Ptr {
-			sftype = sftype.Elem()
-		}
-		// Use underlying element type if it's an array or a slice.
-		if sftype.Kind() == reflect.Slice || sftype.Kind() == reflect.Array {
+		// Use underlying element type if it's an array/slice/pointer
+		for sftype.Kind() == reflect.Ptr || sftype.Kind() == reflect.Slice || sftype.Kind() == reflect.Array {
 			sftype = sftype.Elem()
 		}
 		for _, val := range values {
