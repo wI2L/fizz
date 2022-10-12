@@ -392,6 +392,55 @@ func TestNewSchemaFromStructFieldFormat(t *testing.T) {
 	assert.Equal(t, sor.Schema.Format, "email")
 }
 
+func TestNewSchemaFromEnumField(t *testing.T) {
+	g := gen(t)
+
+	type T struct {
+		A string      `enum:"a,b,c"`
+		B int         `enum:"1,2,3"`
+		C *string     `enum:"d,e,f"`
+		D *int        `enum:"4,5,6"`
+		E []string    `enum:"g,h,i"`
+		F *[]string   `enum:"j,k,l"`
+		G **string    `enum:"m,n,o"`
+		H **[]string  `enum:"p,q,r"`
+		I **[]float64 `enum:"7.0,8.1,9.2"`
+	}
+
+	tests := []struct {
+		fname        string
+		expectedEnum []interface{}
+		isSlice      bool
+	}{
+		{"A", []interface{}{"a", "b", "c"}, false},
+		{"B", []interface{}{int64(1), int64(2), int64(3)}, false},
+		{"C", []interface{}{"d", "e", "f"}, false},
+		{"D", []interface{}{int64(4), int64(5), int64(6)}, false},
+		{"E", []interface{}{"g", "h", "i"}, true},
+		{"F", []interface{}{"j", "k", "l"}, true},
+		{"G", []interface{}{"m", "n", "o"}, false},
+		{"H", []interface{}{"p", "q", "r"}, false},
+		{"I", []interface{}{7.0, 8.1, 9.2}, false},
+	}
+
+	typ := reflect.TypeOf(T{})
+
+	for i, tt := range tests {
+		t.Run(tt.fname, func(t *testing.T) {
+			sor := g.newSchemaFromStructField(typ.Field(i), true, tt.fname, typ)
+			assert.NotNil(t, sor)
+			var enum []interface{}
+			if tt.isSlice {
+				enum = sor.Items.Enum
+			} else {
+				enum = sor.Enum
+			}
+			assert.Equal(t, tt.expectedEnum, enum)
+		})
+
+	}
+}
+
 func diffJSON(a, b []byte) (bool, error) {
 	var j, j2 interface{}
 	if err := json.Unmarshal(a, &j); err != nil {
