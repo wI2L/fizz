@@ -276,6 +276,16 @@ f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
 ```
 **NOTE**: The generator will never panic. However, it is strongly recommended to call `fizz.Errors` to retrieve and handle the errors that may have occured during the generation of the specification before starting your API.
 
+
+## Swagger UI 
+To serve Swagger UI for generated Open API specification, use `AddOpenApiUIHandler` method specifying the path  
+``` go 
+f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))
+swagger.AddOpenApiUIHandler(f.Engine(),"swagger-ui", "/openapi.json" )
+```
+Swagger UI will be available at `/swagger-ui` using json from `/openapi.json`
+
+
 #### Servers information
 
 If the OpenAPI specification refers to an API that is not hosted on the same domain, or using a path prefix not included in the spec, you will have to declare server information. This can be achieved using the `f.Generator().SetServers` method.
