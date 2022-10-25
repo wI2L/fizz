@@ -993,6 +993,12 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 	// relative reference. Unnamed types, like anonymous structs,
 	// will always be inlined in the specification.
 	if name != "" {
+		if _, ok := g.api.Components.Schemas[name]; ok {
+			g.error(&TypeError{
+				Message: "encountered duplicated type",
+				Type:    t,
+			})
+		}
 		g.api.Components.Schemas[name] = sor
 
 		return &SchemaOrRef{Reference: &Reference{

@@ -3,6 +3,8 @@ package openapi
 import (
 	"encoding/json"
 	"fmt"
+	baseTypes "github.com/wI2L/fizz/openapi/test_types/base_types"
+	extraTypes "github.com/wI2L/fizz/openapi/test_types/extra_types"
 	"io/ioutil"
 	"math"
 	"reflect"
@@ -25,62 +27,6 @@ var genConfig = &SpecGenConfig{
 }
 
 var rt = reflect.TypeOf
-
-type (
-	W struct {
-		A, B string
-	}
-	u struct {
-		S int
-	}
-	q  int
-	ns string
-	ni int
-	X  struct {
-		*X // ignored, recursive embedding
-		*Y
-		A string `validate:"required"`
-		B *int
-		C bool `deprecated:"true"`
-		D []*Y
-		E [3]*X
-		F *X
-		G *Y
-		H map[int]*Y // ignored, unsupported keys type
-		*u
-		uu *u // ignored, unexported field
-		q     // ignored, embedded field of non-struct type
-		*Q
-		*V `json:"data"`
-		NS ns
-		NI *ni
-	}
-	Y struct {
-		H float32   `validate:"required"`
-		I time.Time `format:"date"`
-		J *uint8    `deprecated:"oui"` // invalid value, interpreted as false
-		K *Z        `validate:"required"`
-		N struct {
-			Na, Nb string
-			Nc     time.Duration
-		}
-		l int // ignored
-		M int `json:"-"`
-	}
-	Z map[string]*Y
-	Q struct {
-		NnNnnN string `json:"nnNnnN"`
-	}
-	V struct {
-		L int
-	}
-)
-
-func (*X) TypeName() string { return "XXX" }
-func (*W) Format() string   { return "wallet" }
-func (*W) Type() string     { return "string" }
-func (ns) Nullable() bool   { return true }
-func (ni) Nullable() bool   { return false }
 
 // TestStructFieldName tests that the name of a
 // struct field can be correctly extracted.
@@ -190,13 +136,30 @@ func TestSchemaFromMapWithUnsupportedKeys(t *testing.T) {
 	assert.NotEmpty(t, g.Errors()[0].Error())
 }
 
+// TestSchemaFromDuplicatedType tests that a
+// schema cannot be created with 2 types with
+// the same name
+func TestSchemaFromDuplicatedType(t *testing.T) {
+	g := gen(t)
+
+	schema := g.newSchemaFromType(rt(new(extraTypes.D)))
+	assert.NotNil(t, schema)
+	assert.Len(t, g.Errors(), 1)
+	assert.Implements(t, (*error)(nil), g.Errors()[0])
+
+	err := g.Errors()[0]
+	assert.NotEmpty(t, err)
+	assert.Equal(t, "encountered duplicated type", err.(*TypeError).Message)
+	assert.Equal(t, rt(baseTypes.W{}), err.(*TypeError).Type)
+}
+
 // TestSchemaFromComplex tests that a schema
 // can be created from a complex type.
 func TestSchemaFromComplex(t *testing.T) {
 	g := gen(t)
 	g.UseFullSchemaNames(false)
 
-	sor := g.newSchemaFromType(rt(new(X)))
+	sor := g.newSchemaFromType(rt(new(baseTypes.X)))
 	assert.NotNil(t, sor)
 
 	b, err := json.Marshal(sor)
@@ -520,7 +483,7 @@ func TestAddOperation(t *testing.T) {
 			},
 		},
 	}
-	_, err := g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
+	_, err := g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(baseTypes.Z{}), infos)
 	if err != nil {
 		t.Error(err)
 	}
@@ -563,7 +526,7 @@ func TestAddOperation(t *testing.T) {
 	}
 	// Try to add the operation again with the same
 	// identifier. Expected to fail.
-	_, err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(Z{}), infos)
+	_, err = g.AddOperation(path, "POST", "Test", reflect.TypeOf(&In{}), reflect.TypeOf(baseTypes.Z{}), infos)
 	assert.NotNil(t, err)
 
 	// Add an operation with a bad input type.
@@ -579,25 +542,25 @@ func TestTypeName(t *testing.T) {
 		t.Error(err)
 	}
 	// Typer interface.
-	name := g.typeName(rt(new(X)))
+	name := g.typeName(rt(new(baseTypes.X)))
 	assert.Equal(t, "XXX", name)
 
 	// Override. This has precedence
 	// over the interface implementation.
-	err = g.OverrideTypeName(rt(new(X)), "")
+	err = g.OverrideTypeName(rt(new(baseTypes.X)), "")
 	assert.NotNil(t, err)
-	assert.Equal(t, "XXX", g.typeName(rt(new(X))))
+	assert.Equal(t, "XXX", g.typeName(rt(new(baseTypes.X))))
 
-	g.OverrideTypeName(rt(new(X)), "xXx")
-	assert.Equal(t, "xXx", g.typeName(rt(X{})))
+	g.OverrideTypeName(rt(new(baseTypes.X)), "xXx")
+	assert.Equal(t, "xXx", g.typeName(rt(baseTypes.X{})))
 
-	err = g.OverrideTypeName(rt(new(X)), "YYY")
+	err = g.OverrideTypeName(rt(new(baseTypes.X)), "YYY")
 	assert.NotNil(t, err)
 
 	// Default.
-	assert.Equal(t, "OpenapiY", g.typeName(rt(new(Y))))
+	assert.Equal(t, "Base_typesY", g.typeName(rt(new(baseTypes.Y))))
 	g.UseFullSchemaNames(false)
-	assert.Equal(t, "Y", g.typeName(rt(Y{})))
+	assert.Equal(t, "Y", g.typeName(rt(baseTypes.Y{})))
 
 	// Unnamed type.
 	assert.Equal(t, "", g.typeName(rt(struct{}{})))
@@ -763,18 +726,18 @@ func TestOverrideSchema(t *testing.T) {
 	g := gen(t)
 
 	// Type is mandatory.
-	err := g.OverrideDataType(rt(W{}), "", "wallet")
+	err := g.OverrideDataType(rt(baseTypes.W{}), "", "wallet")
 	assert.NotNil(t, err)
 
 	// Success.
-	err = g.OverrideDataType(rt(&W{}), "string", "wallet")
+	err = g.OverrideDataType(rt(&baseTypes.W{}), "string", "wallet")
 	assert.Nil(t, err)
 
 	// Data type already overidden.
-	err = g.OverrideDataType(rt(&W{}), "string", "wallet")
+	err = g.OverrideDataType(rt(&baseTypes.W{}), "string", "wallet")
 	assert.NotNil(t, err)
 
-	sor := g.newSchemaFromType(rt(W{}))
+	sor := g.newSchemaFromType(rt(baseTypes.W{}))
 	assert.NotNil(t, sor)
 
 	schema := g.resolveSchema(sor)
