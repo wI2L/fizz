@@ -146,7 +146,11 @@ func TestSchemaFromDuplicatedType(t *testing.T) {
 	assert.NotNil(t, schema)
 	assert.Len(t, g.Errors(), 1)
 	assert.Implements(t, (*error)(nil), g.Errors()[0])
-	assert.NotEmpty(t, g.Errors()[0])
+
+	err := g.Errors()[0]
+	assert.NotEmpty(t, err)
+	assert.Equal(t, "encountered duplicated type", err.(*TypeError).Message)
+	assert.Equal(t, rt(baseTypes.W{}), err.(*TypeError).Type)
 }
 
 // TestSchemaFromComplex tests that a schema
