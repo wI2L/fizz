@@ -28,6 +28,10 @@ var (
 	ginPathParamRe = regexp.MustCompile(`\/:([^\/]*)`)
 )
 
+var (
+	typePathRe = regexp.MustCompile(`([\*\-a-zA-Z0-9\.\/_]+)(\[([\*\-a-zA-Z0-9\.\/_]+)\])?`)
+)
+
 // mediaTags maps media types to well-known
 // struct tags used for marshaling.
 var mediaTags = map[string]string{
@@ -1149,7 +1153,13 @@ func (g *Generator) typeName(t reflect.Type) string {
 			return tn.TypeName()
 		}
 	}
-	name := t.String() // package.name.
+	rawName := t.String() // package.name.
+	submatch := typePathRe.FindStringSubmatch(rawName)
+	var name, typeParam = submatch[1], submatch[3]
+	if len(typeParam) > 0 {
+		lastIndex := strings.LastIndex(typeParam, "/")
+		typeParam = "-" + typeParam[lastIndex+1:]
+	}
 	sp := strings.Index(name, ".")
 	pkg := name[:sp]
 
@@ -1161,9 +1171,9 @@ func (g *Generator) typeName(t reflect.Type) string {
 	typ := name[sp+1:]
 
 	if !g.fullNames {
-		return strings.Title(typ)
+		return strings.Title(typ) + typeParam
 	}
-	return strings.Title(pkg) + strings.Title(typ)
+	return strings.Title(pkg) + strings.Title(typ) + typeParam
 }
 
 // updateSchemaValidation fills the fields of the schema
