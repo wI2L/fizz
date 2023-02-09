@@ -26,6 +26,7 @@ const (
 var (
 	paramsInPathRe = regexp.MustCompile(`\{(.*?)\}`)
 	ginPathParamRe = regexp.MustCompile(`\/:([^\/]*)`)
+	refRe          = regexp.MustCompile("[\\[\\]\\.]|(\\w+(-\\w+)?/)") // Replace all words that do not conform [RFC3986-compliant]
 )
 
 // mediaTags maps media types to well-known
@@ -964,7 +965,7 @@ func (g *Generator) newSchemaFromStruct(t reflect.Type) *SchemaOrRef {
 	if t.Kind() != reflect.Struct {
 		return nil
 	}
-	name := g.typeName(t)
+	name := refRe.ReplaceAllString(g.typeName(t), "")
 
 	// If the type of the field has already been registered,
 	// skip the schema generation to avoid a recursive loop.
@@ -1255,7 +1256,7 @@ func fieldNameFromTag(sf reflect.StructField, tagName string) string {
 	return name
 }
 
-/// parseExampleValue is used to transform the string representation of the example value to the correct type.
+// / parseExampleValue is used to transform the string representation of the example value to the correct type.
 func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 	// If the type implements Exampler use the ParseExample method to create the example
 	i, ok := reflect.New(t).Interface().(Exampler)
