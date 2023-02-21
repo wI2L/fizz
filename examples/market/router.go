@@ -5,10 +5,11 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/loopfz/gadgeto/tonic"
+	"github.com/mcorbin/gadgeto/tonic"
 
-	"github.com/wI2L/fizz"
-	"github.com/wI2L/fizz/openapi"
+	"github.com/ccfish86/fizz/v2"
+	"github.com/ccfish86/fizz/v2/openapi"
+	"github.com/ccfish86/fizz/v2/ui"
 )
 
 // NewRouter returns a new router for the
@@ -33,12 +34,15 @@ func NewRouter() (*fizz.Fizz, error) {
 	// Create a new route that serve the OpenAPI spec.
 	fizz.GET("/openapi.json", nil, fizz.OpenAPI(infos, "json"))
 
+	ui.AddUIHandler(fizz.Engine(), "/doc", "/openapi.json")
+
 	// Setup routes.
 	routes(fizz.Group("/market", "market", "Your daily dose of freshness"))
 
 	if len(fizz.Errors()) != 0 {
 		return nil, fmt.Errorf("fizz errors: %v", fizz.Errors())
 	}
+
 	return fizz, nil
 }
 

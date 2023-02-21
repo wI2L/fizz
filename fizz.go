@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ccfish86/fizz/v2/openapi"
 	"github.com/gin-gonic/gin"
-	"github.com/loopfz/gadgeto/tonic"
-	"github.com/wI2L/fizz/openapi"
+	"github.com/mcorbin/gadgeto/tonic"
 )
 
 const ctxOpenAPIOperation = "_ctx_openapi_operation"
