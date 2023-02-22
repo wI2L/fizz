@@ -15,7 +15,6 @@ require (
 )
 
 require (
-	github.com/loopfz/gadgeto v0.9.0 // indirect
 	github.com/mcorbin/gadgeto v0.12.0
 )
 

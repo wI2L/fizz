@@ -9,3 +9,7 @@
 
 更新`knife4j-vue3`时，只需要使用`npm`将编译后的`dist/`内容复制到本项目的`/ui/knife4go`下即可。
 
+
+以下为示例图：
+
+![alt 示例图](./images/knife4j-ui-example.jpg)
