@@ -14,9 +14,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require (
-	github.com/mcorbin/gadgeto v0.12.0
-)
+require github.com/mcorbin/gadgeto v0.12.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -40,4 +38,9 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+retract (
+	// Package incorrect in file 'fizz_test.go'
+	v2.0.1
 )
