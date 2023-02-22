@@ -1,0 +1,983 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+      "title": "危化圈 APP Api",
+      "description": "This is a weihuaquan api server.",
+      "version": "1.0.0"
+  },
+  "paths": {
+      "/app/pub/mobile/login": {
+          "post": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "手机号登录",
+              "operationId": "MobileLogin-fm",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/MobileLogin-FmInput"
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamLoginResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "该用户被封禁"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/region/cities": {
+          "get": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "城市列表",
+              "operationId": "GetSysRegionCities-fm",
+              "parameters": [
+                  {
+                      "name": "deep",
+                      "in": "query",
+                      "schema": {
+                          "type": "integer",
+                          "format": "int32"
+                      }
+                  },
+                  {
+                      "name": "pid",
+                      "in": "query",
+                      "schema": {
+                          "type": "string"
+                      }
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultDataRegionCitiesResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "暂无数据"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/region/tree": {
+          "get": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "省市县地址库",
+              "operationId": "GetSysRegionTree-fm",
+              "parameters": [
+                  {
+                      "name": "deep",
+                      "in": "query",
+                      "schema": {
+                          "type": "integer",
+                          "format": "int32"
+                      }
+                  },
+                  {
+                      "name": "pid",
+                      "in": "query",
+                      "schema": {
+                          "type": "string"
+                      }
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultDataRegionTree"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "暂无数据"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/upload/image": {
+          "post": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "图像上传(FormData)",
+              "operationId": "UploadImage-fm",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/UploadImage-FmInput"
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamFileUploadResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "文件上传失败"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/vehicle/transportMediums": {
+          "get": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "运输介质列表",
+              "operationId": "GetVehicleTransportMediums-fm",
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamVehicleDictResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "暂无数据"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/vehicle/types": {
+          "get": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "车辆类型列表",
+              "operationId": "GetVehicleTypes-fm",
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamVehicleDictResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "暂无数据"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/ver/upgrade": {
+          "get": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "版本升级",
+              "operationId": "GetVersion-fm",
+              "parameters": [
+                  {
+                      "name": "brand",
+                      "in": "query",
+                      "schema": {
+                          "type": "string"
+                      }
+                  },
+                  {
+                      "name": "type",
+                      "in": "query",
+                      "schema": {
+                          "type": "integer",
+                          "format": "int32"
+                      }
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamVersionUpResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "当前无升级信息"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/pub/wx/login": {
+          "post": {
+              "tags": [
+                  "PubApiGroup"
+              ],
+              "summary": "微信登录",
+              "operationId": "WxLogin-fm",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/WxLogin-FmInput"
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamLoginResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "该用户被封禁"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/tran/user/line": {
+          "put": {
+              "tags": [
+                  "TransportApiGroup"
+              ],
+              "summary": "添加常用线路",
+              "operationId": "AddLine-fm",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/AddLine-FmInput"
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamUserUsuallyLineResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "添加失败"
+                              }
+                          }
+                      }
+                  },
+                  "401": {
+                      "description": "Unauthorized Error",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "登录超时"
+                              }
+                          }
+                      }
+                  },
+                  "500": {
+                      "description": "Internal Server Error",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "服务端内部错误"
+                              }
+                          }
+                      }
+                  }
+              }
+          },
+          "delete": {
+              "tags": [
+                  "TransportApiGroup"
+              ],
+              "summary": "删除常用线路",
+              "operationId": "RemoveLine-fm",
+              "parameters": [
+                  {
+                      "name": "id",
+                      "in": "query",
+                      "description": "APPID",
+                      "required": true,
+                      "schema": {
+                          "type": "string",
+                          "description": "APPID"
+                      }
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultInterface {}"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "删除失败"
+                              }
+                          }
+                      }
+                  },
+                  "401": {
+                      "description": "Unauthorized Error",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "登录超时"
+                              }
+                          }
+                      }
+                  },
+                  "500": {
+                      "description": "Internal Server Error",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "服务端内部错误"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/tran/user/lines": {
+          "get": {
+              "tags": [
+                  "TransportApiGroup"
+              ],
+              "summary": "用户常用线路",
+              "operationId": "GetLines-fm",
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamUserUsuallyLineResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "没有查到数据"
+                              }
+                          }
+                      }
+                  },
+                  "401": {
+                      "description": "Unauthorized Error",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "登录超时"
+                              }
+                          }
+                      }
+                  },
+                  "500": {
+                      "description": "Internal Server Error",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "服务端内部错误"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/app/user/profile": {
+          "get": {
+              "tags": [
+                  "UserApiGroup"
+              ],
+              "summary": "个人信息",
+              "operationId": "GetProfile-fm",
+              "responses": {
+                  "200": {
+                      "description": "OK",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ResponseHttpResultParamUserProfileResp"
+                              }
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad request",
+                      "content": {
+                          "application/json": {
+                              "schema": null,
+                              "example": {
+                                  "error": "该用户被封禁"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  },
+  "components": {
+      "schemas": {
+          "AddLine-FmInput": {
+              "type": "object",
+              "properties": {
+                  "cityFrom": {
+                      "type": "string",
+                      "description": "出发城市ID"
+                  },
+                  "cityTo": {
+                      "type": "string",
+                      "description": "目的城市ID"
+                  }
+              }
+          },
+          "DataRegionCitiesResp": {
+              "type": "object",
+              "properties": {
+                  "allCities": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/DataRegionResp"
+                      }
+                  },
+                  "usuallyCities": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/DataRegionResp"
+                      }
+                  }
+              }
+          },
+          "DataRegionResp": {
+              "type": "object",
+              "properties": {
+                  "id": {
+                      "type": "string"
+                  },
+                  "name": {
+                      "type": "string"
+                  },
+                  "pinyin": {
+                      "type": "string"
+                  },
+                  "type": {
+                      "type": "integer",
+                      "format": "int32"
+                  }
+              }
+          },
+          "DataRegionTree": {
+              "type": "object",
+              "properties": {
+                  "children": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/DataRegionTree"
+                      }
+                  },
+                  "id": {
+                      "type": "string"
+                  },
+                  "leaf": {
+                      "type": "boolean",
+                      "nullable": true
+                  },
+                  "name": {
+                      "type": "string"
+                  },
+                  "pinyin": {
+                      "type": "string"
+                  },
+                  "type": {
+                      "type": "integer",
+                      "format": "int32"
+                  }
+              }
+          },
+          "MobileLogin-FmInput": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "string"
+                  },
+                  "mobile": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ParamFileUploadResp": {
+              "type": "object",
+              "properties": {
+                  "state": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "url": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ParamLoginResp": {
+              "type": "object",
+              "properties": {
+                  "expiresAt": {
+                      "type": "integer",
+                      "format": "int64"
+                  },
+                  "refreshToken": {
+                      "type": "string"
+                  },
+                  "token": {
+                      "type": "string"
+                  },
+                  "user": {
+                      "$ref": "#/components/schemas/ParamUserBaseInfoResp"
+                  }
+              }
+          },
+          "ParamUserBaseInfoResp": {
+              "type": "object",
+              "properties": {
+                  "gender": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "id": {
+                      "type": "string"
+                  },
+                  "username": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ParamUserProfileResp": {
+              "type": "object",
+              "properties": {
+                  "cityId": {
+                      "type": "string",
+                      "description": "市ID"
+                  },
+                  "dictrictId": {
+                      "type": "string",
+                      "description": "区县ID"
+                  },
+                  "gender": {
+                      "type": "integer",
+                      "description": "性别",
+                      "format": "int32"
+                  },
+                  "id": {
+                      "type": "integer",
+                      "description": "用户ID",
+                      "format": "int32"
+                  },
+                  "mobile": {
+                      "type": "string",
+                      "description": "手机号"
+                  },
+                  "motto": {
+                      "type": "string",
+                      "description": "座右铭"
+                  },
+                  "provinceId": {
+                      "type": "string",
+                      "description": "省ID"
+                  },
+                  "username": {
+                      "type": "string",
+                      "description": "用户名"
+                  }
+              }
+          },
+          "ParamUserUsuallyLineResp": {
+              "type": "object",
+              "properties": {
+                  "CreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                  },
+                  "UpdatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                  },
+                  "cityFrom": {
+                      "type": "string",
+                      "description": "出发城市ID"
+                  },
+                  "cityTo": {
+                      "type": "string",
+                      "description": "目的城市ID"
+                  },
+                  "id": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ParamVehicleDictResp": {
+              "type": "object",
+              "properties": {
+                  "id": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "name": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ParamVersionUpResp": {
+              "type": "object",
+              "properties": {
+                  "appStore": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "displayVer": {
+                      "type": "string"
+                  },
+                  "minNumberVer": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "notes": {
+                      "type": "string"
+                  },
+                  "numberVer": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "purl": {
+                      "type": "string"
+                  },
+                  "purlx86": {
+                      "type": "string"
+                  },
+                  "url": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultDataRegionCitiesResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "$ref": "#/components/schemas/DataRegionCitiesResp"
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultDataRegionTree": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/DataRegionTree"
+                      }
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultInterface {}": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "description": "Value of any type, including null",
+                      "nullable": true
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultParamFileUploadResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "$ref": "#/components/schemas/ParamFileUploadResp"
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultParamLoginResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "$ref": "#/components/schemas/ParamLoginResp"
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultParamUserProfileResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "$ref": "#/components/schemas/ParamUserProfileResp"
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultParamUserUsuallyLineResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "$ref": "#/components/schemas/ParamUserUsuallyLineResp"
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultParamVehicleDictResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/ParamVehicleDictResp"
+                      }
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "ResponseHttpResultParamVersionUpResp": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "integer",
+                      "format": "int32"
+                  },
+                  "data": {
+                      "$ref": "#/components/schemas/ParamVersionUpResp"
+                  },
+                  "msg": {
+                      "type": "string"
+                  }
+              }
+          },
+          "UploadImage-FmInput": {
+              "type": "object",
+              "properties": {
+                  "noSave": {
+                      "type": "string"
+                  }
+              }
+          },
+          "WxLogin-FmInput": {
+              "type": "object",
+              "properties": {
+                  "code": {
+                      "type": "string"
+                  }
+              }
+          }
+      },
+      "securitySchemes": {
+          "apiToken": {
+              "type": "apiKey",
+              "in": "header",
+              "name": "x-token"
+          }
+      }
+  },
+  "tags": [
+      {
+          "name": "PubApiGroup",
+          "description": "危化圈通用接口等"
+      },
+      {
+          "name": "TransportApiGroup",
+          "description": "危化圈货运相关接口等"
+      },
+      {
+          "name": "UserApiGroup",
+          "description": "危化圈用户接口等"
+      },
+      {
+          "name": "VehicleApiGroup",
+          "description": "危化圈车辆相关接口等"
+      }
+  ]
+}

@@ -1,3 +1,10 @@
+/*
+ * @Date: 2023-02-22 09:21:11
+ * @LastEditors: ccfish ccfish@ccfish.net
+ * @LastEditTime: 2023-02-22 09:24:30
+ * @FilePath: \fizz\ui\knife_ui.go
+ * @Description:
+ */
 package ui
 
 import (
@@ -17,6 +24,18 @@ func AddUIHandler(ginEngine *gin.Engine, path string, openApiJsonPath string) {
 	if err != nil {
 		panic(err)
 	}
+
+	// for `v3/api-docs/swagger-config`, as springdoc
+	configPath := path + "v3/api-docs/swagger-config"
+	ginEngine.GET(configPath, func(c *gin.Context) {
+
+		c.JSON(200, &SwaggerConfig{ConfigUrl: configPath, DisplayRequestDuration: true, OperationsSorter: "method", Urls: &[]SwaggerUrl{
+			SwaggerUrl{
+				Url:  openApiJsonPath,
+				Name: "default",
+			},
+		}})
+	})
 
 	ginEngine.StaticFS(path, http.FS(FsWrapper(sub, openApiJsonPath)))
 }
