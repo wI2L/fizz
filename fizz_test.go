@@ -15,11 +15,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
-	"github.com/loopfz/gadgeto/tonic"
+	"github.com/mcorbin/gadgeto/tonic"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 
-	"github.com/wI2L/fizz/openapi"
+	"github.com/ccfish84/fizz/v2/openapi"
 )
 
 func TestMain(m *testing.M) {

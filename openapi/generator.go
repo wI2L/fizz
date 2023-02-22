@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gofrs/uuid"
-	"github.com/loopfz/gadgeto/tonic"
+	"github.com/mcorbin/gadgeto/tonic"
 )
 
 const (
