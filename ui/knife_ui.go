@@ -1,10 +1,3 @@
-/*
- * @Date: 2023-02-22 09:21:11
- * @LastEditors: ccfish ccfish@ccfish.net
- * @LastEditTime: 2023-02-22 09:24:30
- * @FilePath: \fizz\ui\knife_ui.go
- * @Description:
- */
 package ui
 
 import (
