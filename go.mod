@@ -43,4 +43,6 @@ require (
 retract (
 	// Package incorrect in file 'fizz_test.go'
 	v2.0.1
+	// Incorrect operation's path
+	v2.0.2
 )
