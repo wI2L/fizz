@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	tofDataType = reflect.TypeOf((*DataType)(nil)).Elem()
-	tofNullable = reflect.TypeOf((*Nullable)(nil)).Elem()
+	tofDataType   = reflect.TypeOf((*DataType)(nil)).Elem()
+	tofNullable   = reflect.TypeOf((*Nullable)(nil)).Elem()
+	tofDescriptor = reflect.TypeOf((*Descriptor)(nil)).Elem()
 
 	// Native.
 	tofTime           = reflect.TypeOf(time.Time{})
@@ -47,6 +48,12 @@ type DataType interface {
 // that can parse example values.
 type Exampler interface {
 	ParseExample(v string) (interface{}, error)
+}
+
+// Descriptor is the interface implemented by the RequestBody input schema
+// that provides a description for this schema kind
+type Descriptor interface {
+	Description() string
 }
 
 // Nullable is the interface implemented by the types
