@@ -228,6 +228,7 @@ func TestSchemaFromComplex(t *testing.T) {
 	sor = g.API().Components.Schemas["Y"]
 	schema = g.resolveSchema(sor)
 	assert.NotNil(t, schema)
+	assert.True(t, schema.Nullable)
 
 	actual, err = json.Marshal(schema)
 	if err != nil {
