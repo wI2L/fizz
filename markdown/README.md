@@ -1,14 +1,13 @@
-Markdown Builder
-================
+# Markdown Builder
 
-[![Godoc reference](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/wI2L/fizz/markdown)
+[![Godoc reference](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/ github.com/demand-iq/fizz/markdown)
 
 This is a simple builder to help you create **Mardown** content in Go.
 
 ## Usage
 
 ```go
-import "github.com/wI2L/fizz/markdown"
+import " github.com/demand-iq/fizz/markdown"
 
 builder := markdown.Builder{}
 
@@ -16,7 +15,7 @@ builder.
    H1("Markdown Builder").
    P("A simple builder to help your write Markdown in Go").
    H2("Installation").
-   Code("go get -u github.com/wI2L/fizz", "bash").
+   Code("go get -u  github.com/demand-iq/fizz", "bash").
    H2("Todos").
    BulletedList(
      "write tests",
@@ -36,7 +35,7 @@ md := builder.String()
     ----------------------------------
 
     ```bash
-    go get -u github.com/wI2L/fizz", "bash
+    go get -u  github.com/demand-iq/fizz", "bash
     ```
 
     Todos
@@ -53,32 +52,32 @@ The builder have two kinds of elements, block and inline elements. Block element
 
 ### Inline
 
-* Alternative titles ⇒ `builder.AltH1` and `builder.AltH2`
-* Emphasis ⇒ `builder.Emphasis` and `builder.Italic`
-* Strong emphasis ⇒ `builder.StrongEmphasis` and `builder.Bold`
-* Combined emphasis ⇒ `builder.StrongEmphasis`
-* Strikethrough ⇒ `builder.Strikethrough`
-* Code ⇒ `builder.InlineCode`
-* Link ⇒ `builder.Link`
-* Image ⇒ `builder.Image`
+- Alternative titles ⇒ `builder.AltH1` and `builder.AltH2`
+- Emphasis ⇒ `builder.Emphasis` and `builder.Italic`
+- Strong emphasis ⇒ `builder.StrongEmphasis` and `builder.Bold`
+- Combined emphasis ⇒ `builder.StrongEmphasis`
+- Strikethrough ⇒ `builder.Strikethrough`
+- Code ⇒ `builder.InlineCode`
+- Link ⇒ `builder.Link`
+- Image ⇒ `builder.Image`
 
 ### Block
 
-* Headers ⇒ `builder.H1`, `builder.H2`, `builder.H3`, `builder.H4`, `builder.H5`, `builder.H6`
-* Paragraph ⇒ `builder.P`
-* Line ⇒ `builder.Line`
+- Headers ⇒ `builder.H1`, `builder.H2`, `builder.H3`, `builder.H4`, `builder.H5`, `builder.H6`
+- Paragraph ⇒ `builder.P`
+- Line ⇒ `builder.Line`
   A line is similar to a paragraph but it doesn't insert a line break at the end.
-* Line break ⇒ `builder.BR`
-* Blockquote ⇒ `builder.Blockquote`
-* Horizontal rule ⇒ `builder.HR`
-* Code ⇒ `builder.Code`
-* Lists
+- Line break ⇒ `builder.BR`
+- Blockquote ⇒ `builder.Blockquote`
+- Horizontal rule ⇒ `builder.HR`
+- Code ⇒ `builder.Code`
+- Lists
   1. Bulleted ⇒ `builder.BulletedList`
   2. Numbered ⇒ `builder.NumberedList`
 
 ### Github Flavor
 
-The builder also support the tables extension of the *GitHub Flavored Markdown Spec*.
+The builder also support the tables extension of the _GitHub Flavored Markdown Spec_.
 
 ```go
 builder.Table(
@@ -95,6 +94,7 @@ builder.Table(
   }
 )
 ```
+
 ```
 | Letter |         Title         |      ID |
 | :----: | :-------------------: | ------: |

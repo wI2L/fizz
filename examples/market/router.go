@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 
+	"github.com/demand-iq/fizz"
+	"github.com/demand-iq/fizz/openapi"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
-
-	"github.com/wI2L/fizz"
-	"github.com/wI2L/fizz/openapi"
 )
 
 // NewRouter returns a new router for the
