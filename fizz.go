@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/demand-iq/fizz/openapi"
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
-	"github.com/wI2L/fizz/openapi"
 )
 
 const ctxOpenAPIOperation = "_ctx_openapi_operation"
