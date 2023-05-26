@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/demand-iq/fizz/openapi"
+	"github.com/demand-iq/gadgeto/tonic"
 	"github.com/gin-gonic/gin"
-	"github.com/loopfz/gadgeto/tonic"
 )
 
 const ctxOpenAPIOperation = "_ctx_openapi_operation"
@@ -205,6 +205,15 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 		}
 		oi.StatusCode = hfunc.GetDefaultStatusCode()
 
+		requestMediaType := hfunc.GetRequestMediaType()
+		if requestMediaType == "" {
+			requestMediaType = tonic.MediaType()
+		}
+		responseMediaType := hfunc.GetResponseMediaType()
+		if responseMediaType == "" {
+			responseMediaType = tonic.MediaType()
+		}
+
 		// Set an input type if provided.
 		it := hfunc.InputType()
 		if oi.InputModel != nil {
@@ -215,7 +224,7 @@ func (g *RouterGroup) Handle(path, method string, infos []OperationOption, handl
 		operationPath := joinPaths(g.group.BasePath(), path)
 
 		// Add operation to the OpenAPI spec.
-		operation, err := g.gen.AddOperation(operationPath, method, g.Name, it, hfunc.OutputType(), oi)
+		operation, err := g.gen.AddOperation(operationPath, method, g.Name, requestMediaType, responseMediaType, it, hfunc.OutputType(), oi)
 		if err != nil {
 			panic(fmt.Sprintf(
 				"error while generating OpenAPI spec on operation %s %s: %s",

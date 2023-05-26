@@ -40,6 +40,11 @@ func CreateFruit(c *gin.Context, fruit *Fruit) (*Fruit, error) {
 	return fruit, nil
 }
 
+// HTMLHandler
+func HTMLHandler(c *gin.Context) (string, error) {
+	return "<h1>Hello</h1>", nil
+}
+
 // DeleteFruit removes a fruit from the market.
 func DeleteFruit(c *gin.Context, params *FruitIdentityParams) error {
 	if params.APIKey == "" {

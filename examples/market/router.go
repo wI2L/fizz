@@ -5,9 +5,9 @@ import (
 
 	"github.com/demand-iq/fizz"
 	"github.com/demand-iq/fizz/openapi"
+	"github.com/demand-iq/gadgeto/tonic"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/loopfz/gadgeto/tonic"
 )
 
 // NewRouter returns a new router for the
@@ -66,4 +66,9 @@ func routes(grp *fizz.RouterGroup) {
 		fizz.Response("400", "Bad request", nil, nil, nil),
 		fizz.Header("X-Market-Listing-Size", "Listing size", fizz.Long),
 	}, tonic.Handler(ListFruits, 200))
+
+	// List all available fruits.
+	grp.GET("/html", []fizz.OperationOption{
+		fizz.Summary("Get HTML"),
+	}, tonic.Handler(HTMLHandler, 200))
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/demand-iq/gadgeto/tonic"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +43,7 @@ func TestSchemaValidation(t *testing.T) {
 	}
 	g := gen(t)
 
-	sor := g.newSchemaFromType(rt(new(T)))
+	sor := g.newSchemaFromType(rt(new(T)), tonic.MediaType())
 	assert.NotNil(t, sor)
 	schema := g.resolveSchema(sor)
 	assert.NotNil(t, schema)

@@ -4,11 +4,11 @@ go 1.18
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
+	github.com/demand-iq/gadgeto v0.0.0-20230526165537-3f4fe7ed1882
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/juju/errors v1.0.0
-	github.com/loopfz/gadgeto v0.9.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/text v0.4.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -33,6 +33,5 @@ require (
 	golang.org/x/crypto v0.3.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/go-playground/validator.v9 v9.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

@@ -1,5 +1,5 @@
 <h1 align="center">Fizz</h1>
-<p align="center"><img src="images/lemon.png" height="200px" width="auto" alt="Gin Fizz"></p><p align="center">Fizz is a wrapper for <strong>Gin</strong> based on <strong><a href="https://github.com/loopfz/gadgeto/tree/master/tonic">gadgeto/tonic</a></strong>.</p>
+<p align="center"><img src="images/lemon.png" height="200px" width="auto" alt="Gin Fizz"></p><p align="center">Fizz is a wrapper for <strong>Gin</strong> based on <strong><a href="https://github.com/demand-iq/gadgeto/tree/master/tonic">gadgeto/tonic</a></strong>.</p>
 <p align="center">It generates wrapping gin-compatible handlers that do all the repetitive work and wrap the call to your handlers. It can also generates an <i>almost</i> complete <strong>OpenAPI 3</strong> specification of your API.</p>
 <p align="center">
    <a href="https://pkg.go.dev/ github.com/demand-iq/fizz?tab=doc"><img src="https://img.shields.io/static/v1?label=godev&message=reference&color=00add8&logo=go"></a>
@@ -463,6 +463,6 @@ curl -i http://localhost:4242/openapi.json
 
 ## Credits
 
-Fizz is based on [gin-gonic/gin](https://github.com/gin-gonic/gin) and use [gadgeto/tonic](https://github.com/loopfz/gadgeto/tree/master/tonic). :heart:
+Fizz is based on [gin-gonic/gin](https://github.com/gin-gonic/gin) and use [gadgeto/tonic](https://github.com/demand-iq/gadgeto/tree/master/tonic). :heart:
 
 <p align="right"><img src="https://forthebadge.com/images/badges/built-with-swag.svg"></p>
