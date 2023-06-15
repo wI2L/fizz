@@ -126,7 +126,8 @@
                     }
                 ],
                 "security": [],
-                "x-internal": true
+                "x-internal": true,
+                "tags": ["TestTag1", "TestTag2"]
             }
         },
         "/test/{a}/{b}": {
