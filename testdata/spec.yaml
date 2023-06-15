@@ -80,6 +80,9 @@ paths:
           source: curl http://0.0.0.0:8080
       security: []
       x-internal: true
+      tags:
+        - TestTag1
+        - TestTag2
   /test/{a}/{b}:
     get:
       operationId: GetTest2

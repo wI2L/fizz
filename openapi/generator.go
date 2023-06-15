@@ -265,6 +265,7 @@ func (g *Generator) AddOperation(path, method, tag string, in, out reflect.Type,
 		op.XCodeSamples = info.XCodeSamples
 		op.Security = info.Security
 		op.XInternal = info.XInternal
+		op.Tags = info.Tags
 	}
 	if tag != "" {
 		op.Tags = append(op.Tags, tag)

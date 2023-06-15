@@ -308,6 +308,7 @@ func TestSpecHandler(t *testing.T) {
 			// Explicit override for SecurityRequirement (allow-all)
 			WithoutSecurity(),
 			XInternal(),
+			WithTags("TestTag1", "TestTag2"),
 		},
 		tonic.Handler(func(c *gin.Context, in *testInputModel1) (*T, error) {
 			return &T{}, nil
