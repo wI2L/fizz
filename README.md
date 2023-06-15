@@ -113,6 +113,9 @@ fizz.XCodeSample(codeSample *XCodeSample)
 
 // Mark the operation as internal. The x-internal flag is interpreted by third-party tools and it only impacts the visual documentation rendering.
 fizz.XInternal()
+
+// Add additional tags to the operation.
+fizz.WithTags(tags ...string)
 ```
 
 **NOTES:**

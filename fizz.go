@@ -401,6 +401,12 @@ func XInternal() func(*openapi.OperationInfo) {
 	}
 }
 
+func WithTags(tags ...string) func(*openapi.OperationInfo) {
+	return func(o *openapi.OperationInfo) {
+		o.Tags = tags
+	}
+}
+
 // OperationFromContext returns the OpenAPI operation from
 // the given Gin context or an error if none is found.
 func OperationFromContext(ctx context.Context) (*openapi.Operation, error) {

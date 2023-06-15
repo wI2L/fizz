@@ -15,6 +15,7 @@ type OperationInfo struct {
 	Security          []*SecurityRequirement
 	XCodeSamples      []*XCodeSample
 	XInternal         bool
+	Tags              []string
 }
 
 // ResponseHeader represents a single header that
