@@ -154,7 +154,7 @@ func TestSchemaFromInterface(t *testing.T) {
 
 	schema := g.newSchemaFromType(tofEmptyInterface)
 	assert.NotNil(t, schema)
-	assert.Empty(t, schema.Type)
+	assert.Equal(t, "object", schema.Type)
 	assert.Empty(t, schema.Format)
 	assert.True(t, schema.Nullable)
 	assert.NotEmpty(t, schema.Description)
