@@ -3,8 +3,8 @@ package openapi
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -213,7 +213,7 @@ func TestSchemaFromComplex(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/X.json.
-	expected, err := ioutil.ReadFile("../testdata/schemas/X.json")
+	expected, err := os.ReadFile("../testdata/schemas/X.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -234,7 +234,7 @@ func TestSchemaFromComplex(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/Y.json.
-	expected, err = ioutil.ReadFile("../testdata/schemas/Y.json")
+	expected, err = os.ReadFile("../testdata/schemas/Y.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -550,7 +550,7 @@ func TestAddOperation(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/schemas/path-item.json.
-	expected, err := ioutil.ReadFile("../testdata/schemas/path-item.json")
+	expected, err := os.ReadFile("../testdata/schemas/path-item.json")
 	if err != nil {
 		t.Error(err)
 	}

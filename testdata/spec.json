@@ -21,17 +21,6 @@
                 }
             }
         }
-    ],    
-    "security": [
-        {
-            "api_key": []
-        },
-        {
-            "oauth2": [
-                "write:pets",
-                "read:pets"
-            ]
-        }
     ],
     "paths": {
         "/test/{a}": {
@@ -45,7 +34,8 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "x-omitempty": false
                         }
                     }
                 ],
@@ -53,17 +43,12 @@
                     "200": {
                         "description": "OK",
                         "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique request ID",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
+                            "X-Request-Id": {}
                         },
-                        "content":{
-                            "application/json":{
-                                "schema":{
-                                    "$ref":"#/components/schemas/FizzT"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FizzT"
                                 }
                             }
                         }
@@ -76,12 +61,8 @@
                                     "type": "string"
                                 },
                                 "examples": {
-                                    "one": {
-                                        "value": "message1"
-                                    },
-                                    "two": {
-                                        "value": "message2"
-                                    }
+                                    "one": {},
+                                    "two": {}
                                 }
                             }
                         }
@@ -100,13 +81,7 @@
                     "429": {
                         "description": "Too Many Requests",
                         "headers": {
-                            "X-Rate-Limit": {
-                                "description": "Rate limit",
-                                "schema": {
-                                    "type": "integer",
-                                    "format": "int32"
-                                }
-                            }
+                            "X-Rate-Limit": {}
                         },
                         "content": {
                             "application/json": {
@@ -118,6 +93,7 @@
                     }
                 },
                 "deprecated": true,
+                "security": [],
                 "x-codeSamples": [
                     {
                         "lang": "Shell",
@@ -125,7 +101,6 @@
                         "source": "curl http://0.0.0.0:8080"
                     }
                 ],
-                "security": [],
                 "x-internal": true
             }
         },
@@ -138,7 +113,8 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "x-omitempty": false
                         }
                     },
                     {
@@ -146,15 +122,17 @@
                         "in": "path",
                         "required": true,
                         "schema": {
+                            "format": "int32",
                             "type": "integer",
-                            "format": "int32"
+                            "x-omitempty": false
                         }
                     },
                     {
                         "name": "q",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "x-omitempty": false
                         }
                     }
                 ],
@@ -183,7 +161,8 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "x-omitempty": false
                         }
                     }
                 ],
@@ -206,25 +185,28 @@
     },
     "components": {
         "schemas": {
-            "FizzCustomTime":{
-                "type":"object",
-                "description":"This is Z",
+            "FizzCustomTime": {
+                "type": "object",
+                "description": "This is Z",
                 "example": "2022-02-07T18:00:00"
             },
-            "FizzT":{
-                "type":"object",
-                "properties":{
-                    "x":{
-                        "type":"string",
-                        "description":"This is X"
+            "FizzT": {
+                "type": "object",
+                "properties": {
+                    "x": {
+                        "description": "This is X",
+                        "type": "string",
+                        "x-omitempty": false
                     },
-                    "y":{
-                        "type":"integer",
-                        "description":"This is Y",
-                        "format":"int32"
+                    "y": {
+                        "description": "This is Y",
+                        "format": "int32",
+                        "type": "integer",
+                        "x-omitempty": false
                     },
-                    "z":{
-                        "$ref":"#/components/schemas/FizzCustomTime"
+                    "z": {
+                        "$ref": "#/components/schemas/FizzCustomTime",
+                        "x-omitempty": false
                     }
                 }
             },
@@ -232,34 +214,32 @@
                 "type": "object",
                 "properties": {
                     "message": {
+                        "description": "A short message",
                         "type": "string",
-                        "description": "A short message"
+                        "x-omitempty": false
                     },
                     "value": {
                         "description": "A nullable value of arbitrary type",
-                        "nullable": true
+                        "nullable": true,
+                        "x-omitempty": false
                     }
                 }
             }
         },
         "securitySchemes": {
-            "api_key": {
-                "type": "apiKey",
-                "name": "api_key",
-                "in": "header"
-            },
-            "oauth2": {
-                "type": "oauth2",
-                "flows": {
-                    "implicit": {
-                        "authorizationUrl": "https://example.com/api/oauth/dialog",
-                        "scopes": {
-                            "write:pets": "modify pets in your account",
-                            "read:pets": "read your pets"
-                        }
-                    }
-                }
-            }
+            "api_key": {},
+            "oauth2": {}
         }
-    }
+    },
+    "security": [
+        {
+            "api_key": []
+        },
+        {
+            "oauth2": [
+                "write:pets",
+                "read:pets"
+            ]
+        }
+    ]
 }

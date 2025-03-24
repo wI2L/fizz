@@ -2,7 +2,7 @@ package openapi
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -52,7 +52,7 @@ func TestSchemaValidation(t *testing.T) {
 		t.Error(err)
 	}
 	// see testdata/validation/len.json.
-	expected, err := ioutil.ReadFile("../testdata/schemas/validation.json")
+	expected, err := os.ReadFile("../testdata/schemas/validation.json")
 	if err != nil {
 		t.Error(err)
 	}

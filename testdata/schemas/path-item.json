@@ -18,15 +18,17 @@
         "summary": "ABC",
         "description": "XYZ",
         "operationId": "CreateTest",
-        "parameters": [{
+        "parameters": [
+            {
                 "name": "a",
                 "in": "path",
                 "description": "This is A",
                 "required": true,
                 "schema": {
-                    "type": "integer",
                     "description": "This is A",
-                    "format": "int32"
+                    "format": "int32",
+                    "type": "integer",
+                    "x-omitempty": false
                 }
             },
             {
@@ -35,9 +37,10 @@
                 "description": "This is B",
                 "required": true,
                 "schema": {
-                    "type": "string",
                     "description": "This is B",
-                    "format": "date-time"
+                    "format": "date-time",
+                    "type": "string",
+                    "x-omitempty": false
                 }
             },
             {
@@ -45,45 +48,49 @@
                 "in": "query",
                 "allowEmptyValue": true,
                 "schema": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "x-omitempty": false
                 }
             },
             {
                 "name": "i",
                 "in": "query",
                 "schema": {
-                    "type": "string"
+                    "type": "string",
+                    "x-omitempty": false
                 }
             },
             {
                 "name": "k",
                 "in": "query",
                 "schema": {
-                    "type": "array",
                     "items": {
-                        "type": "string",
                         "enum": [
                             "aaa",
                             "bbb",
                             "ccc"
-                        ]
-                    }
+                        ],
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "x-omitempty": false
                 },
-                "explode": true,
-                "style": "form"
+                "style": "form",
+                "explode": true
             },
             {
                 "name": "xd",
                 "in": "query",
                 "schema": {
-                    "type": "integer",
-                    "format": "int32",
                     "default": 1,
                     "enum": [
                         1,
                         2,
                         3
-                    ]
+                    ],
+                    "format": "int32",
+                    "type": "integer",
+                    "x-omitempty": false
                 }
             },
             {
@@ -91,9 +98,10 @@
                 "in": "header",
                 "description": "This is C",
                 "schema": {
-                    "type": "string",
+                    "default": "test",
                     "description": "This is C",
-                    "default": "test"
+                    "type": "string",
+                    "x-omitempty": false
                 }
             }
         ],
@@ -110,18 +118,8 @@
             "201": {
                 "description": "Created",
                 "headers": {
-                    "X-Test-Header": {
-                        "description": "Test header",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "X-Test-Header-Alt": {
-                        "description": "Test header alt",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
+                    "X-Test-Header": {},
+                    "X-Test-Header-Alt": {}
                 },
                 "content": {
                     "application/json": {

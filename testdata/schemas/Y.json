@@ -2,38 +2,46 @@
     "type": "object",
     "properties": {
         "H": {
+            "format": "float",
             "type": "number",
-            "format": "float"
+            "x-omitempty": false
         },
         "I": {
+            "format": "date",
             "type": "string",
-            "format": "date"
+            "x-omitempty": false
         },
         "J": {
-            "type": "integer",
             "format": "int32",
-            "nullable": true
+            "nullable": true,
+            "type": "integer",
+            "x-omitempty": false
         },
         "K": {
-            "type": "object",
             "additionalProperties": {
                 "$ref": "#/components/schemas/Y"
-            }
+            },
+            "type": "object",
+            "x-omitempty": false
         },
         "N": {
-            "type": "object",
             "properties": {
                 "Na": {
-                    "type": "string"
+                    "type": "string",
+                    "x-omitempty": false
                 },
                 "Nb": {
-                    "type": "string"
+                    "type": "string",
+                    "x-omitempty": false
                 },
                 "Nc": {
+                    "format": "duration",
                     "type": "string",
-                    "format": "duration"
+                    "x-omitempty": false
                 }
-            }
+            },
+            "type": "object",
+            "x-omitempty": false
         }
     },
     "required": [

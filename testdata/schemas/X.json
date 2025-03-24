@@ -2,89 +2,109 @@
     "type": "object",
     "properties": {
         "A": {
-            "type": "string"
+            "type": "string",
+            "x-omitempty": false
         },
         "B": {
-            "type": "integer",
             "format": "int32",
-            "nullable": true
+            "nullable": true,
+            "type": "integer",
+            "x-omitempty": false
         },
         "C": {
+            "deprecated": true,
             "type": "boolean",
-            "deprecated": true
+            "x-omitempty": false
         },
         "D": {
-            "type": "array",
             "items": {
                 "$ref": "#/components/schemas/Y"
-            }
+            },
+            "type": "array",
+            "x-omitempty": false
         },
         "E": {
-            "type": "array",
             "items": {
                 "$ref": "#/components/schemas/XXX"
             },
             "maxItems": 3,
-            "minItems": 3
+            "minItems": 3,
+            "type": "array",
+            "x-omitempty": false
         },
         "F": {
-            "$ref": "#/components/schemas/XXX"
+            "$ref": "#/components/schemas/XXX",
+            "x-omitempty": false
         },
         "G": {
-            "$ref": "#/components/schemas/Y"
+            "$ref": "#/components/schemas/Y",
+            "x-omitempty": false
         },
         "H": {
+            "format": "float",
             "type": "number",
-            "format": "float"
+            "x-omitempty": false
         },
         "I": {
+            "format": "date",
             "type": "string",
-            "format": "date"
+            "x-omitempty": false
         },
         "J": {
-            "type": "integer",
             "format": "int32",
-            "nullable": true
+            "nullable": true,
+            "type": "integer",
+            "x-omitempty": false
         },
         "K": {
-            "type": "object",
             "additionalProperties": {
                 "$ref": "#/components/schemas/Y"
-            }
+            },
+            "type": "object",
+            "x-omitempty": false
         },
         "N": {
-            "type": "object",
             "properties": {
                 "Na": {
-                    "type": "string"
+                    "type": "string",
+                    "x-omitempty": false
                 },
                 "Nb": {
-                    "type": "string"
+                    "type": "string",
+                    "x-omitempty": false
                 },
                 "Nc": {
+                    "format": "duration",
                     "type": "string",
-                    "format": "duration"
+                    "x-omitempty": false
                 }
-            }
+            },
+            "type": "object",
+            "x-omitempty": false
         },
-        "S": {
+        "NI": {
+            "format": "int32",
+            "nullable": true,
             "type": "integer",
-            "format": "int32"
-        },
-        "nnNnnN":{
-            "type":"string"
-        },
-        "data": {
-            "$ref": "#/components/schemas/V"
+            "x-omitempty": false
         },
         "NS": {
             "nullable": true,
-            "type": "string"
+            "type": "string",
+            "x-omitempty": false
         },
-        "NI" : {
-            "nullable": true,
+        "S": {
+            "format": "int32",
             "type": "integer",
-            "format": "int32"
+            "x-omitempty": false
+        },
+        "data": {
+            "$ref": "#/components/schemas/V",
+            "x-omitempty": false
+        },
+        "nnNnnN": {
+            "type": "string",
+            "x-omitempty": false
         }
     },
     "required": [

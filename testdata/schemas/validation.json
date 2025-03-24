@@ -2,58 +2,68 @@
     "type": "object",
     "properties": {
         "A": {
-            "type": "string",
             "maxLength": 12,
-            "minLength": 12
+            "minLength": 12,
+            "type": "string",
+            "x-omitempty": false
         },
         "B": {
-            "type": "integer",
             "format": "int32",
             "maximum": 100,
-            "minimum": 5
+            "minimum": 5,
+            "type": "integer",
+            "x-omitempty": false
         },
         "C": {
-            "type": "array",
             "items": {
                 "type": "boolean"
             },
             "maxItems": 50,
-            "minItems": 50
+            "minItems": 50,
+            "type": "array",
+            "x-omitempty": false
         },
         "D": {
-            "type": "object",
             "additionalProperties": {
                 "type": "string"
             },
             "maxProperties": 5,
-            "minProperties": 5
+            "minProperties": 5,
+            "type": "object",
+            "x-omitempty": false
         },
         "E": {
-            "type": "string"
+            "type": "string",
+            "x-omitempty": false
         },
         "F": {
+            "maxLength": 7,
             "type": "string",
-            "maxLength": 7
+            "x-omitempty": false
         },
         "G": {
+            "minLength": 7,
             "type": "string",
-            "minLength": 7
+            "x-omitempty": false
         },
         "H": {
+            "format": "int32",
             "type": "integer",
-            "format": "int32"
+            "x-omitempty": false
         },
         "I": {
-            "type": "array",
             "items": {
                 "type": "string"
-            }
+            },
+            "type": "array",
+            "x-omitempty": false
         },
         "J": {
-            "type": "object",
             "additionalProperties": {
                 "type": "string"
-            }
+            },
+            "type": "object",
+            "x-omitempty": false
         }
     }
 }

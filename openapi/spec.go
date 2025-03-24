@@ -93,7 +93,26 @@ type PathItem struct {
 // other components in the specification, internally and
 // externally.
 type Reference struct {
-	Ref string `json:"$ref" yaml:"$ref"`
+	Ref        string                 `json:"$ref" yaml:"$ref"`
+	Extensions map[string]interface{} `json:"-" yaml:"-"`
+}
+
+func (r *Reference) MarshalJSON() ([]byte, error) {
+	if r == nil {
+		return []byte("{}"), nil
+	}
+
+	m := map[string]interface{}{
+		"$ref": r.Ref,
+	}
+
+	if r.Extensions != nil {
+		for k, v := range r.Extensions {
+			m[k] = v
+		}
+	}
+
+	return json.Marshal(m)
 }
 
 // Parameter describes a single operation parameter.
@@ -124,6 +143,16 @@ func (por *ParameterOrRef) MarshalYAML() (interface{}, error) {
 	return por.Reference, nil
 }
 
+func (p *ParameterOrRef) MarshalJSON() ([]byte, error) {
+	if p.Parameter != nil {
+		return json.Marshal(p.Parameter)
+	}
+	if p.Reference != nil {
+		return json.Marshal(p.Reference)
+	}
+	return []byte("{}"), nil
+}
+
 // RequestBody represents a request body.
 type RequestBody struct {
 	Description string                `json:"description,omitempty" yaml:"description,omitempty"`
@@ -144,6 +173,22 @@ func (sor *SchemaOrRef) MarshalYAML() (interface{}, error) {
 		return sor.Schema, nil
 	}
 	return sor.Reference, nil
+}
+
+func (sor *SchemaOrRef) MarshalJSON() ([]byte, error) {
+	if sor == nil {
+		return nil, nil
+	}
+
+	if sor.Schema != nil {
+		return json.Marshal(sor.Schema)
+	}
+
+	if sor.Reference != nil {
+		return json.Marshal(sor.Reference)
+	}
+
+	return []byte("{}"), nil
 }
 
 // Schema represents the definition of input and output data
@@ -184,6 +229,35 @@ type Schema struct {
 	Enum             []interface{} `json:"enum,omitempty" yaml:"enum,omitempty"`
 	Nullable         bool          `json:"nullable,omitempty" yaml:"nullable,omitempty"`
 	Deprecated       bool          `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+
+	Extensions map[string]interface{} `json:"-" yaml:"-"`
+}
+
+func (s *Schema) MarshalJSON() ([]byte, error) {
+	if s == nil {
+		return nil, nil
+	}
+
+	type Alias Schema
+	base, err := json.Marshal((*Alias)(s))
+	if err != nil {
+		return nil, err
+	}
+
+	if len(s.Extensions) == 0 {
+		return base, nil
+	}
+
+	var baseMap map[string]interface{}
+	if err := json.Unmarshal(base, &baseMap); err != nil {
+		return nil, err
+	}
+
+	for k, v := range s.Extensions {
+		baseMap[k] = v
+	}
+
+	return json.Marshal(baseMap)
 }
 
 // Operation describes an API operation on a path.
@@ -271,6 +345,16 @@ func (ror *ResponseOrRef) MarshalYAML() (interface{}, error) {
 	return ror.Reference, nil
 }
 
+func (r *ResponseOrRef) MarshalJSON() ([]byte, error) {
+	if r.Response != nil {
+		return json.Marshal(r.Response)
+	}
+	if r.Reference != nil {
+		return json.Marshal(r.Reference)
+	}
+	return []byte("{}"), nil
+}
+
 // Response describes a single response from an API.
 type Response struct {
 	Description string                     `json:"description,omitempty" yaml:"description,omitempty"`
@@ -315,6 +399,13 @@ func (mtor *MediaTypeOrRef) MarshalYAML() (interface{}, error) {
 		return mtor.MediaType, nil
 	}
 	return mtor.Reference, nil
+}
+
+func (m *MediaTypeOrRef) MarshalJSON() ([]byte, error) {
+	if m.MediaType != nil {
+		return json.Marshal(m.MediaType)
+	}
+	return []byte("{}"), nil
 }
 
 // MediaType represents the type of a media.

@@ -751,6 +751,9 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 	if sor == nil {
 		return nil
 	}
+
+	sor = g.addExtensions(sor, sf)
+
 	// Get the underlying schema, it may be a reference
 	// to a component, and update its fields using the
 	// informations in the struct field tags.
@@ -829,6 +832,26 @@ func (g *Generator) newSchemaFromStructField(sf reflect.StructField, required bo
 		} else {
 			schema.Example = parsed
 		}
+	}
+
+	return sor
+}
+
+func (g *Generator) addExtensions(sor *SchemaOrRef, sf reflect.StructField) *SchemaOrRef {
+	// Check if the json field has the omitempty tag.
+	jsonTag := sf.Tag.Get("json")
+	hasOmitEmpty := strings.Contains(jsonTag, "omitempty")
+
+	if sor.Schema != nil {
+		if sor.Schema.Extensions == nil {
+			sor.Schema.Extensions = make(map[string]interface{})
+		}
+		sor.Schema.Extensions["x-omitempty"] = hasOmitEmpty
+	} else if sor.Reference != nil {
+		if sor.Reference.Extensions == nil {
+			sor.Reference.Extensions = make(map[string]interface{})
+		}
+		sor.Reference.Extensions["x-omitempty"] = hasOmitEmpty
 	}
 
 	return sor
@@ -1255,7 +1278,7 @@ func fieldNameFromTag(sf reflect.StructField, tagName string) string {
 	return name
 }
 
-/// parseExampleValue is used to transform the string representation of the example value to the correct type.
+// / parseExampleValue is used to transform the string representation of the example value to the correct type.
 func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 	// If the type implements Exampler use the ParseExample method to create the example
 	i, ok := reflect.New(t).Interface().(Exampler)
