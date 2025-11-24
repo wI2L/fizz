@@ -1005,6 +1005,12 @@ func TestGenerator_parseExampleValue(t *testing.T) {
 			"2022-02-07T18:00:00+09:00",
 			customTime(time.Date(2022, time.February, 7, 18, 0, 0, 0, time.FixedZone("", 9*3600))),
 		},
+		{
+			"mapping to slice",
+			reflect.TypeOf([]string{}),
+			"coucou1,coucou2",
+			[]string{"coucou1", "coucou2"},
+		},
 	}
 
 	for _, tc := range testCases {

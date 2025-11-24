@@ -1304,6 +1304,17 @@ func parseExampleValue(t reflect.Type, value string) (interface{}, error) {
 		return parseExampleValue(t.Elem(), value)
 	case reflect.Struct:
 		return nil, fmt.Errorf("type %s does not implement Exampler", t.String())
+	case reflect.Slice:
+		vals := strings.Split(value, ",")
+		vs := reflect.MakeSlice(reflect.SliceOf(t.Elem()), 0, 0)
+		for i := range vals {
+			v, err := parseExampleValue(t.Elem(), vals[i])
+			if err != nil {
+				return nil, err
+			}
+			vs = reflect.Append(vs, reflect.ValueOf(v))
+		}
+		return vs.Interface(), nil
 	default:
 		return nil, fmt.Errorf("unsuported type: %s", t.String())
 	}
