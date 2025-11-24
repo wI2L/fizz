@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -217,6 +218,17 @@ func stringToType(val string, t reflect.Type) (interface{}, error) {
 		return strconv.ParseUint(val, 10, t.Bits())
 	case reflect.Float32, reflect.Float64:
 		return strconv.ParseFloat(val, t.Bits())
+	case reflect.Slice:
+		vals := strings.Split(val, ",")
+		vs := reflect.MakeSlice(reflect.SliceOf(t.Elem()), 0, 0)
+		for i := range vals {
+			v, err := stringToType(vals[i], t.Elem())
+			if err != nil {
+				return nil, err
+			}
+			vs = reflect.Append(vs, reflect.ValueOf(v))
+		}
+		return vs.Interface(), nil
 	}
 	return nil, fmt.Errorf("unknown type %s", t.String())
 }
