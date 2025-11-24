@@ -212,20 +212,22 @@ func TestStringToType(t *testing.T) {
 		t reflect.Type
 		v interface{}
 	}{
-		"coucou":  {rt(""), "coucou"},
-		"0":       {rt(int8(0)), int64(0)},
-		"1":       {rt(int16(0)), int64(1)},
-		"2":       {rt(int32(0)), int64(2)},
-		"3":       {rt(int64(0)), int64(3)},
-		"4":       {rt(uint8(4)), uint64(4)},
-		"5":       {rt(uint16(5)), uint64(5)},
-		"6":       {rt(uint32(6)), uint64(6)},
-		"7":       {rt(uint64(7)), uint64(7)},
-		"true":    {rt(true), true},
-		"f":       {rt(false), false},
-		"invalid": {rt(true), false},
-		"8":       {rt(float32(8)), float64(8.0)},
-		"9.1":     {rt(float64(9.1)), float64(9.1)},
+		"coucou":          {rt(""), "coucou"},
+		"0":               {rt(int8(0)), int64(0)},
+		"1":               {rt(int16(0)), int64(1)},
+		"2":               {rt(int32(0)), int64(2)},
+		"3":               {rt(int64(0)), int64(3)},
+		"4":               {rt(uint8(4)), uint64(4)},
+		"5":               {rt(uint16(5)), uint64(5)},
+		"6":               {rt(uint32(6)), uint64(6)},
+		"7":               {rt(uint64(7)), uint64(7)},
+		"true":            {rt(true), true},
+		"f":               {rt(false), false},
+		"invalid":         {rt(true), false},
+		"8":               {rt(float32(8)), float64(8.0)},
+		"9.1":             {rt(float64(9.1)), float64(9.1)},
+		"coucou1,coucou2": {rt([]string{}), []string{"coucou1", "coucou2"}},
+		"9.1,9.2":         {rt([]float64{}), []float64{float64(9.1), float64(9.2)}},
 	}
 	for from, to := range tests {
 		vv, err := stringToType(from, to.t)
@@ -238,7 +240,7 @@ func TestStringToType(t *testing.T) {
 	}
 	// Expect error for unknown unsuported types
 	// in conversion.
-	_, err := stringToType("", reflect.TypeOf([]string{}))
+	_, err := stringToType("", reflect.TypeOf(new(map[string]string)))
 	if err == nil {
 		t.Errorf("expected error to be non-nil for unsupported type")
 	}
