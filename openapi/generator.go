@@ -895,7 +895,17 @@ func (g *Generator) newSchemaFromType(t reflect.Type) *SchemaOrRef {
 		case reflect.Slice, reflect.Array, reflect.Map:
 			return g.buildSchemaRecursive(t)
 		case reflect.Struct:
-			return g.newSchemaFromStruct(t)
+			sor := g.newSchemaFromStruct(t)
+			var schema *Schema
+			if sor != nil && sor.Schema != nil {
+				schema = sor.Schema
+			} else if sor != nil {
+				schema = g.resolveSchema(sor)
+			}
+			if schema != nil {
+				schema.Nullable = nullable
+			}
+			return sor
 		}
 	}
 	if dt == TypeAny {
