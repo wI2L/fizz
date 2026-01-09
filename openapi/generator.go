@@ -458,6 +458,14 @@ func (g *Generator) setOperationParams(op *Operation, t, parent reflect.Type, al
 		}
 		sch := op.RequestBody.Content[mt].Schema
 		if sch != nil {
+			// Get description
+			if t.Implements(tofDescriptor) {
+				i, ok := reflect.New(t).Interface().(Descriptor)
+				if ok {
+					sch.Schema.Description = i.Description()
+				}
+			}
+
 			name := strings.Title(op.ID) + "Input"
 			g.api.Components.Schemas[name] = sch
 			op.RequestBody.Content[mt].Schema = &SchemaOrRef{Reference: &Reference{

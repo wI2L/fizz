@@ -452,35 +452,41 @@ func diffJSON(a, b []byte) (bool, error) {
 	return reflect.DeepEqual(j2, j), nil
 }
 
+type InEmbed struct {
+	D int      `query:"xd" enum:"1,2,3" default:"1"`
+	E bool     `query:"e"`
+	F *string  `json:"f" description:"This is F"`
+	G []byte   `validate:"required"`
+	H uint16   `binding:"-"`
+	K []string `query:"k" enum:"aaa,bbb,ccc"`
+}
+type inEmbedPrivate struct {
+	I string `query:"i"`
+}
+type h string
+type In struct {
+	*In // ignored, recusrive embedding
+	*InEmbed
+	*inEmbedPrivate
+
+	A int       `path:"a" description:"This is A" deprecated:"oui"`
+	B time.Time `query:"b" validate:"required" description:"This is B"`
+	C string    `header:"X-Test-C" description:"This is C" default:"test"`
+	d int       // ignored, unexported field
+	E int       `path:"a"` // ignored, duplicate of A
+	F *string   `json:"f"` // ignored, duplicate of F in InEmbed
+	G *inEmbedPrivate
+	h // ignored, embedded field of non-struct type
+
+}
+
+func (i In) Description() string {
+	return "Test input schema description"
+}
+
 // TestAddOperation tests that an operation can be added
 // and generates the according specification.
 func TestAddOperation(t *testing.T) {
-	type InEmbed struct {
-		D int      `query:"xd" enum:"1,2,3" default:"1"`
-		E bool     `query:"e"`
-		F *string  `json:"f" description:"This is F"`
-		G []byte   `validate:"required"`
-		H uint16   `binding:"-"`
-		K []string `query:"k" enum:"aaa,bbb,ccc"`
-	}
-	type inEmbedPrivate struct {
-		I string `query:"i"`
-	}
-	type h string
-	type In struct {
-		*In // ignored, recusrive embedding
-		*InEmbed
-		*inEmbedPrivate
-
-		A int       `path:"a" description:"This is A" deprecated:"oui"`
-		B time.Time `query:"b" validate:"required" description:"This is B"`
-		C string    `header:"X-Test-C" description:"This is C" default:"test"`
-		d int       // ignored, unexported field
-		E int       `path:"a"` // ignored, duplicate of A
-		F *string   `json:"f"` // ignored, duplicate of F in InEmbed
-		G *inEmbedPrivate
-		h // ignored, embedded field of non-struct type
-	}
 	type CustomError struct{}
 
 	var Header string
@@ -524,6 +530,17 @@ func TestAddOperation(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	requestBodyName := infos.ID + "Input"
+	requestBody, ok := g.API().Components.Schemas[requestBodyName]
+	if !ok {
+		t.Errorf("expected to found item for schema %s", requestBodyName)
+	}
+
+	if requestBody.Schema.Description == "" {
+		t.Errorf("expected to found description for schema %s", requestBodyName)
+	}
+
 	// Add another operation with no input/output type.
 	// No parameters should be present, and a response
 	// matching the default status code used by tonic
